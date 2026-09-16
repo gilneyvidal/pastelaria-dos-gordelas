@@ -3,122 +3,228 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pedido - Pastelaria dos Gordelas</title>
+    <title>Imprimir Pedido - Pastelaria dos Gordelas</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Courier New', monospace; }
-        
-        body { background: #f0f0f0; padding: 15px; }
-        
-        .seletor-papel {
-            max-width: 380px; margin: 0 auto 15px; display: flex; gap: 8px; padding: 8px;
-            background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            font-family: 'Courier New', Courier, monospace;
         }
-        .seletor-papel button {
-            flex: 1; padding: 12px; border: 2px solid #ddd; background: #fff;
-            border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px;
-            font-family: 'Segoe UI', sans-serif; transition: all 0.2s;
+        
+        body { 
+            background: #2a2a2a; 
+            padding: 15px 0; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
         }
-        .seletor-papel button.ativo {
-            background: #FFC107; border-color: #FFC107; color: #000;
+
+        .aviso-topo {
+            width: 58mm;
+            max-width: 58mm;
+            background: #FFC107;
+            color: #000;
+            padding: 6px;
+            text-align: center;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 6px;
+            margin-bottom: 8px;
         }
         
         .cupom {
-            max-width: 380px; margin: 0 auto; background: #fff; padding: 20px;
-            border: 1px dashed #000; font-size: 13px; line-height: 1.5; color: #000;
+            width: 48mm;          /* Área ÚTIL da impressora 58mm (não corta) */
+            max-width: 48mm;
+            background: #fff;
+            padding: 2mm 0;
+            font-size: 10px;
+            line-height: 1.3;
+            color: #000;
+            overflow: hidden;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
-        h1 { text-align: center; font-size: 16px; margin-bottom: 4px; letter-spacing: 1px; }
-        .subtitulo { text-align: center; font-size: 11px; margin-bottom: 12px; }
-        .linha { border-top: 1px dashed #000; margin: 8px 0; }
-        .linha-dupla { border-top: 1px dashed #000; margin: 8px 0; }
-        .dupla { display: flex; justify-content: space-between; margin: 3px 0; gap: 10px; }
-        .dupla span:first-child { flex: 1; }
-        .dupla span:last-child { text-align: right; white-space: nowrap; }
-        .total { font-weight: bold; font-size: 15px; border-top: 2px solid #000; padding-top: 5px; margin-top: 5px; }
-        .itens { margin: 8px 0; }
-        .itens .dupla { font-size: 12px; }
-        .obs { font-style: italic; font-size: 11px; margin-top: 8px; word-wrap: break-word; padding: 5px; background: #f5f5f5; }
-        .rodape { text-align: center; font-size: 10px; margin-top: 12px; }
-        .cabecalho { text-align: center; margin-bottom: 10px; font-weight: bold; }
         
-        .btn-print {
-            display: block; width: 100%; max-width: 380px; margin: 15px auto 5px;
-            padding: 14px; background: #FFC107; border: none; border-radius: 8px;
-            font-weight: bold; cursor: pointer; font-size: 15px; color: #000;
+        /* ===== CABEÇALHO ===== */
+        .cabecalho { 
+            text-align: center; 
+            font-weight: bold; 
+            margin-bottom: 3px;
         }
-        .btn-voltar {
-            display: block; width: 100%; max-width: 380px; margin: 5px auto;
-            padding: 12px; background: #fff; border: 2px solid #ddd; border-radius: 8px;
-            font-weight: bold; cursor: pointer; font-size: 13px; color: #666;
+        .cabecalho h1 { 
+            font-size: 12px; 
+            letter-spacing: 0.5px;
+            line-height: 1.2;
         }
-
-        /* ===== MODO TÉRMICA 58mm ===== */
-        body.modo-termica { background: #333; padding: 10px; }
-        body.modo-termica .cupom {
+        .cabecalho .sub { 
+            font-size: 9px; 
+            font-weight: normal;
+            margin-top: 1px;
+        }
+        
+        /* ===== LINHAS DIVISÓRIAS ===== */
+        .linha { 
+            border-top: 1px dashed #000; 
+            margin: 4px 0;
+        }
+        
+        /* ===== CAMPOS EM DUPLA (label + valor na mesma linha) ===== */
+        .dupla {
+            display: flex;
+            justify-content: space-between;
+            gap: 4px;
+            font-size: 10px;
+            margin: 1px 0;
+            line-height: 1.3;
+        }
+        .dupla > span:first-child { 
+            flex-shrink: 0;
+            font-weight: bold;
+        }
+        .dupla > span:last-child { 
+            text-align: right;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            flex: 1;
+        }
+        
+        /* ===== CAMPOS LONGO (label + valor que pode quebrar linha) ===== */
+        .campo-longo {
+            font-size: 10px;
+            margin: 2px 0;
+            line-height: 1.25;
+            word-wrap: break-word;
+            overflow-wrap: anywhere;
+        }
+        .campo-longo .label { 
+            font-weight: bold;
+        }
+        
+        /* ===== TÍTULOS DE SEÇÃO ===== */
+        .secao-titulo { 
+            font-weight: bold; 
+            font-size: 10px; 
+            margin: 3px 0;
+        }
+        
+        /* ===== ITENS DO PEDIDO ===== */
+        .item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 3px;
+            font-size: 10px;
+            margin: 2px 0;
+            line-height: 1.25;
+        }
+        .item .nome {
+            flex: 1;
+            word-wrap: break-word;
+            overflow-wrap: anywhere;
+            min-width: 0;
+        }
+        .item .valor {
+            flex-shrink: 0;
+            text-align: right;
+            white-space: nowrap;
+            font-weight: bold;
+        }
+        
+        /* ===== TOTAL ===== */
+        .total {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 12px;
+            border-top: 2px solid #000;
+            padding-top: 3px;
+            margin-top: 4px;
+        }
+        
+        /* ===== OBSERVAÇÃO ===== */
+        .obs {
+            font-size: 9px;
+            font-style: italic;
+            margin-top: 5px;
+            padding: 3px 4px;
+            border: 1px solid #000;
+            word-wrap: break-word;
+            overflow-wrap: anywhere;
+            line-height: 1.25;
+        }
+        
+        /* ===== RODAPÉ ===== */
+        .rodape {
+            text-align: center;
+            font-size: 9px;
+            margin-top: 6px;
+            line-height: 1.3;
+        }
+        
+        /* ===== BOTÕES ===== */
+        .botoes {
             width: 58mm;
             max-width: 58mm;
-            padding: 2mm 3mm;
-            font-size: 11px;
-            line-height: 1.35;
-            border: 1px dashed #666;
+            margin-top: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
-        body.modo-termica h1 { font-size: 13px; }
-        body.modo-termica .subtitulo { font-size: 9px; margin-bottom: 6px; }
-        body.modo-termica .dupla { font-size: 11px; margin: 2px 0; }
-        body.modo-termica .itens .dupla { font-size: 11px; }
-        body.modo-termica .total { font-size: 13px; }
-        body.modo-termica .linha { margin: 5px 0; }
-        body.modo-termica .obs { font-size: 10px; padding: 3px; }
-        body.modo-termica .rodape { font-size: 9px; margin-top: 8px; }
-        body.modo-termica .btn-print, body.modo-termica .btn-voltar {
-            max-width: 58mm;
-            font-size: 12px;
+        .btn-print {
+            padding: 12px;
+            background: #FFC107;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+            color: #000;
+        }
+        .btn-print:active { background: #E0A800; }
+        .btn-voltar {
             padding: 10px;
+            background: transparent;
+            border: 2px solid #666;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 12px;
+            color: #ccc;
         }
-
-        /* ===== IMPRESSÃO A4 ===== */
+        
+        /* ===== IMPRESSÃO ===== */
         @media print {
-            body { background: #fff; padding: 0; }
-            .seletor-papel, .btn-print, .btn-voltar { display: none !important; }
-            .cupom {
-                max-width: 100%; border: none; padding: 0;
+            body { 
+                background: #fff; 
+                padding: 0; 
+                display: block;
+            }
+            .aviso-topo { display: none !important; }
+            .botoes { display: none !important; }
+            .cupom { 
                 box-shadow: none;
+                padding: 1mm 0;
+                margin: 0 auto;
             }
-            @page { margin: 10mm; }
-        }
-
-        /* ===== IMPRESSÃO TÉRMICA 58mm ===== */
-        body.modo-termica.imprimindo {
-            background: #fff;
-        }
-        @media print {
-            body.modo-termica {
-                background: #fff !important;
-                padding: 0 !important;
+            @page { 
+                size: 58mm auto; 
+                margin: 0; 
             }
-            body.modo-termica .cupom {
-                width: 58mm;
-                max-width: 58mm;
-                padding: 1mm 2mm;
-                border: none;
-                margin: 0;
-            }
-            body.modo-termica .seletor-papel,
-            body.modo-termica .btn-print,
-            body.modo-termica .btn-voltar { display: none !important; }
-            @page { size: 58mm auto; margin: 0; }
         }
     </style>
 </head>
 <body>
-    <div class="seletor-papel">
-        <button id="btn-a4" onclick="mudarPapel('a4')">🖨️ Folha A4</button>
-        <button id="btn-termica" onclick="mudarPapel('termica')">🧾 Térmica 58mm</button>
-    </div>
+
+    <div class="aviso-topo">📄 Visualização para impressora 58mm</div>
 
     <div class="cupom" id="cupom"></div>
     
-    <button class="btn-print" onclick="imprimir()">🖨️ Imprimir Agora</button>
-    <button class="btn-voltar" onclick="window.close()">Fechar</button>
+    <div class="botoes">
+        <button class="btn-print" onclick="window.print()">🖨️ Imprimir Agora</button>
+        <button class="btn-voltar" onclick="window.close()">Fechar</button>
+    </div>
 
     <script>
         const params = new URLSearchParams(window.location.search);
@@ -126,7 +232,7 @@
         const id = params.get('id') || '-';
         const nome = params.get('nome') || '-';
         const telefone = params.get('tel') || '-';
-        const modalidade = params.get('mod') || '-';
+        const modalidade = (params.get('mod') || '-').replace(/[🛵🏃🍽️]/g, '').trim();
         const endereco = params.get('end') || '';
         const bairro = params.get('bai') || '';
         const itens = (params.get('itens') || '').split('|').filter(x => x);
@@ -135,81 +241,81 @@
         const total = params.get('tot') || '0,00';
         const pagamento = params.get('pag') || '-';
         const obs = params.get('obs') || '';
-        const papelParam = params.get('papel') || localStorage.getItem('papel-pref') || 'a4';
         
-        const dataHora = new Date().toLocaleString('pt-BR');
+        const dataHora = new Date().toLocaleString('pt-BR', { 
+            dateStyle: 'short', 
+            timeStyle: 'short' 
+        });
 
-        // Remove emojis para impressão térmica (opcional - térmicas antigas não renderizam)
-        const limparEmoji = (txt) => txt.replace(/[🟡🛵🏃🍽️📞📦👤🛒💳💰📝🖨️]/g, '').trim();
-
+        // ===== ENDEREÇO (só se for entrega) =====
         let enderecoHtml = '';
-        if (modalidade.includes('Entrega') && endereco) {
-            enderecoHtml = `<div class="linha"></div>
-                <div class="dupla"><span>Endereço:</span><span>${endereco}</span></div>
-                <div class="dupla"><span>Bairro:</span><span>${bairro}</span></div>`;
+        if (modalidade.toLowerCase().includes('entrega') && endereco) {
+            enderecoHtml = `
+                <div class="linha"></div>
+                <div class="campo-longo"><span class="label">Endereço:</span> ${endereco}</div>
+                <div class="campo-longo"><span class="label">Bairro:</span> ${bairro}</div>
+            `;
         }
 
+        // ===== ITENS =====
         let itensHtml = itens.map(item => {
             const partes = item.split(':');
             const qtdNome = partes[0];
             const valor = partes[1] || '0,00';
-            return `<div class="dupla"><span>${qtdNome}</span><span>R$ ${valor}</span></div>`;
+            return `<div class="item"><span class="nome">${qtdNome}</span><span class="valor">R$ ${valor}</span></div>`;
         }).join('');
 
+        // ===== TAXA (só se > 0) =====
         let taxaHtml = '';
         if (parseFloat(taxa.replace(',', '.')) > 0) {
             taxaHtml = `<div class="dupla"><span>Taxa de Entrega</span><span>R$ ${taxa}</span></div>`;
         }
 
+        // ===== OBSERVAÇÃO =====
         let obsHtml = obs ? `<div class="obs">Obs: ${obs}</div>` : '';
 
+        // ===== MONTAGEM DO CUPOM =====
         document.getElementById('cupom').innerHTML = `
             <div class="cabecalho">
-                <h1>PASTELARIA DOS GORDELAS</h1>
-                <div class="subtitulo">Mogi das Cruzes - SP</div>
+                <h1>PASTELARIA DOS<br>GORDELAS</h1>
+                <div class="sub">Mogi das Cruzes - SP</div>
             </div>
+            
             <div class="linha"></div>
-            <div class="dupla"><span>Pedido:</span><strong>${id}</strong></div>
+            
+            <div class="dupla"><span>Pedido:</span><span>${id}</span></div>
             <div class="dupla"><span>Data:</span><span>${dataHora}</span></div>
+            
             <div class="linha"></div>
-            <div class="dupla"><span>Cliente:</span><span>${nome}</span></div>
-            <div class="dupla"><span>Telefone:</span><span>${telefone}</span></div>
-            <div class="dupla"><span>Modalidade:</span><span>${modalidade.replace(/[🛵🏃🍽️]/g,'').trim()}</span></div>
+            
+            <div class="campo-longo"><span class="label">Cliente:</span> ${nome}</div>
+            <div class="campo-longo"><span class="label">Telefone:</span> ${telefone}</div>
+            <div class="campo-longo"><span class="label">Modalidade:</span> ${modalidade}</div>
+            
             ${enderecoHtml}
+            
             <div class="linha"></div>
-            <div style="font-weight:bold; margin-bottom:4px;">ITENS:</div>
-            <div class="itens">${itensHtml}</div>
+            
+            <div class="secao-titulo">ITENS:</div>
+            ${itensHtml}
+            
             <div class="linha"></div>
+            
             <div class="dupla"><span>Subtotal</span><span>R$ ${subtotal}</span></div>
             ${taxaHtml}
-            <div class="dupla total"><span>TOTAL</span><span>R$ ${total}</span></div>
+            <div class="total"><span>TOTAL</span><span>R$ ${total}</span></div>
+            
             <div class="linha"></div>
-            <div class="dupla"><span>Pagamento:</span><span>${pagamento}</span></div>
+            
+            <div class="campo-longo"><span class="label">Pagamento:</span> ${pagamento}</div>
+            
             ${obsHtml}
+            
             <div class="rodape">
                 Obrigado pela preferência!<br>
                 Frito na hora, sempre crocante!
             </div>
         `;
-
-        function mudarPapel(tipo) {
-            localStorage.setItem('papel-pref', tipo);
-            document.body.classList.toggle('modo-termica', tipo === 'termica');
-            document.getElementById('btn-a4').classList.toggle('ativo', tipo === 'a4');
-            document.getElementById('btn-termica').classList.toggle('ativo', tipo === 'termica');
-        }
-
-        function imprimir() {
-            window.print();
-        }
-
-        // Aplica papel preferido
-        mudarPapel(papelParam);
-
-        // Auto-abre a impressão após 600ms se não for térmica (térmica o lead escolhe)
-        setTimeout(() => {
-            if (papelParam === 'a4') window.print();
-        }, 700);
     </script>
 </body>
 </html>
