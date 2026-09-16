@@ -8,7 +8,6 @@
 </head>
 <body>
 
-<!-- TELA DE LOGIN -->
 <div id="tela-login" class="tela-login">
     <div class="login-box">
         <h1>🔐 Painel Admin</h1>
@@ -22,7 +21,6 @@
     </div>
 </div>
 
-<!-- PAINEL PRINCIPAL -->
 <div id="painel" class="painel-escondido">
     <header class="admin-header">
         <div>
@@ -35,14 +33,24 @@
     <div id="status-bar" class="status-bar"></div>
 
     <nav class="admin-tabs">
-        <button class="tab ativa" onclick="mudarAba('produtos', this)">📦 Produtos</button>
+        <button class="tab ativa" onclick="mudarAba('inicio', this)">🏠 Início</button>
+        <button class="tab" onclick="mudarAba('produtos', this)">📦 Produtos</button>
         <button class="tab" onclick="mudarAba('categorias', this)">📂 Categorias</button>
         <button class="tab" onclick="mudarAba('taxas', this)">🛵 Taxas</button>
         <button class="tab" onclick="mudarAba('config', this)">⚙️ Config</button>
     </nav>
 
     <main>
-        <section id="aba-produtos" class="aba-conteudo ativa">
+        <section id="aba-inicio" class="aba-conteudo ativa">
+            <h2>📊 Resumo da Loja</h2>
+            <div id="dashboard-stats"></div>
+            <h2 style="margin-top:20px;">📦 Produtos por Categoria</h2>
+            <div id="dashboard-categorias"></div>
+            <h2 style="margin-top:20px;">🛵 Taxas de Entrega</h2>
+            <div id="dashboard-taxas"></div>
+        </section>
+
+        <section id="aba-produtos" class="aba-conteudo">
             <button class="btn-novo" onclick="abrirModalProduto()">➕ Novo Produto</button>
             <div id="lista-produtos"></div>
         </section>
@@ -73,7 +81,6 @@
         </section>
     </main>
 
-    <!-- Modal Produto -->
     <div id="modal-produto" class="modal-escondido">
         <div class="modal-box">
             <h2 id="modal-produto-titulo">Novo Produto</h2>
@@ -118,7 +125,6 @@
         </div>
     </div>
 
-    <!-- Modal Categoria -->
     <div id="modal-categoria" class="modal-escondido">
         <div class="modal-box">
             <h2 id="modal-categoria-titulo">Nova Categoria</h2>
