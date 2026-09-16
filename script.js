@@ -3,7 +3,6 @@ let carrinho = [];
 let selecionados = [];
 let taxaAtual = 0;
 
-// Taxas de entrega embutidas como FALLBACK (caso o arquivo taxas.json não carregue)
 const TAXAS_PADRAO = {
   "PARQUE OLÍMPICO": 4.00,
   "VILA MUNICIPAL": 4.00,
@@ -21,12 +20,9 @@ const TAXAS_PADRAO = {
 };
 
 let taxasEntrega = { ...TAXAS_PADRAO };
-
 const NUMERO_WHATSAPP = '5511943184268';
 
-// 1. Carregar dados iniciais (blindado contra erros)
 async function iniciar() {
-    // Tenta carregar taxas.json (se existir, sobrescreve as padrão)
     try {
         const resTaxas = await fetch('./data/taxas.json');
         if (resTaxas.ok) {
@@ -34,10 +30,9 @@ async function iniciar() {
             console.log('✅ Taxas carregadas do arquivo.');
         }
     } catch (e) {
-        console.warn('⚠️ taxas.json não encontrado, usando taxas padrão embutidas.');
+        console.warn('⚠️ taxas.json não encontrado, usando taxas padrão.');
     }
 
-    // Carrega produtos.json (obrigatório)
     try {
         const resProdutos = await fetch('./data/produtos.json');
         if (!resProdutos.ok) throw new Error('Arquivo produtos.json não encontrado');
@@ -52,7 +47,7 @@ async function iniciar() {
         document.getElementById('cardapio').innerHTML = `
             <div style="text-align:center; padding:40px 20px;">
                 <p style="color:#E53935; font-weight:bold; margin-bottom:10px;">Erro ao carregar o cardápio 😢</p>
-                <p style="font-size:12px; color:#B0B0B0;">Verifique se o arquivo <strong>data/produtos.json</strong> existe no repositório.</p>
+                <p style="font-size:12px; color:#B0B0B0;">Verifique se o arquivo <strong>data/produtos.json</strong> existe.</p>
                 <p style="font-size:11px; color:#666; margin-top:10px;">Detalhe: ${erro.message}</p>
             </div>
         `;
@@ -70,7 +65,6 @@ function popularBairros() {
     });
 }
 
-// 2. Categorias
 function renderizarCategorias() {
     const categorias = [...new Set(produtos.map(p => p.categoria))];
     const nav = document.getElementById('categorias');
@@ -89,7 +83,6 @@ function renderizarCategorias() {
     if (nav.firstChild) nav.firstChild.classList.add('ativa');
 }
 
-// 3. Produtos
 function renderizarProdutos(categoria) {
     const container = document.getElementById('cardapio');
     container.innerHTML = '';
@@ -125,7 +118,6 @@ function renderizarProdutos(categoria) {
     });
 }
 
-// 4. Carrinho
 function adicionarAoCarrinho(id) {
     const produto = produtos.find(p => p.id === id);
     if (!produto || produto.esgotado) return;
@@ -178,7 +170,6 @@ function diminuirQuantidade(i) {
 function removerItem(i) { carrinho.splice(i, 1); atualizarCarrinho(); }
 function toggleCarrinho() { document.getElementById('carrinho-fixo').classList.toggle('carrinho-fechado'); }
 
-// 5. Monte o Seu
 function abrirModalMonte() {
     selecionados = [];
     const produto = produtos.find(p => p.id === 'monte-o-seu');
@@ -214,7 +205,6 @@ function adicionarMonteAoCarrinho() {
 
 function fecharModal(id) { document.getElementById(id).classList.remove('ativo'); }
 
-// 6. Checkout
 function abrirCheckout() {
     if (carrinho.length === 0) { alert('Seu carrinho está vazio!'); return; }
     toggleCarrinho();
@@ -253,7 +243,6 @@ function atualizarTotalCheckout() {
     elTotal.textContent = (subtotal + taxaAtual).toFixed(2).replace('.', ',');
 }
 
-// 7. Enviar Pedido
 function enviarPedidoWhatsApp() {
     const nome = document.getElementById('cli-nome').value.trim();
     const telefone = document.getElementById('cli-telefone').value.trim();
@@ -265,12 +254,16 @@ function enviarPedidoWhatsApp() {
     if (!telefone) { alert('Por favor, preencha seu telefone.'); return; }
     
     let enderecoTexto = '';
+    let enderecoParam = '';
+    let bairroParam = '';
     if (modalidade === 'entrega') {
         const endereco = document.getElementById('cli-endereco').value.trim();
-        const bairro = document.getElementById('cli-bairro').value;
+        const bairro = document.getElementById('cli-bairro').value.trim();
         const complemento = document.getElementById('cli-complemento').value.trim();
         if (!endereco || !bairro) { alert('Preencha o endereço e o bairro.'); return; }
         enderecoTexto = `\n*Endereço:* ${endereco}${complemento ? ', ' + complemento : ''}\n*Bairro:* ${bairro}`;
+        enderecoParam = endereco + (complemento ? ', ' + complemento : '');
+        bairroParam = bairro;
     }
     
     const idPedido = 'GORDELA-' + Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -281,6 +274,24 @@ function enviarPedidoWhatsApp() {
     const total = (subtotalNum + taxaAtual).toFixed(2).replace('.', ',');
     
     const modalidadeTexto = modalidade === 'entrega' ? '🛵 Entrega' : (modalidade === 'retirada' ? '🏃 Retirada' : '🍽️ Consumo no Local');
+    
+    const itensParam = carrinho.map(i => 
+        `${i.quantidade}x ${i.nome}:${(i.preco * i.quantidade).toFixed(2).replace('.', ',')}`
+    ).join('|');
+    
+    const baseUrl = window.location.origin + window.location.pathname.replace('index.html', '').replace(/\/$/, '');
+    const linkImpressao = `${baseUrl}/imprimir.html?id=${idPedido}` +
+        `&nome=${encodeURIComponent(nome)}` +
+        `&tel=${encodeURIComponent(telefone)}` +
+        `&mod=${encodeURIComponent(modalidadeTexto)}` +
+        `&end=${encodeURIComponent(enderecoParam)}` +
+        `&bai=${encodeURIComponent(bairroParam)}` +
+        `&itens=${encodeURIComponent(itensParam)}` +
+        `&sub=${subtotal}` +
+        `&taxa=${taxaAtual.toFixed(2).replace('.', ',')}` +
+        `&tot=${total}` +
+        `&pag=${encodeURIComponent(pagamento)}` +
+        `&obs=${encodeURIComponent(obs)}`;
     
     let mensagem = `*🟡 NOVO PEDIDO — PASTELARIA DOS GORDELAS*\n`;
     mensagem += `*ID:* ${idPedido}\n\n`;
@@ -294,6 +305,7 @@ function enviarPedidoWhatsApp() {
     mensagem += `*💰 TOTAL: R$ ${total}*\n\n`;
     mensagem += `*💳 Pagamento:* ${pagamento}\n`;
     if (obs) mensagem += `*📝 Obs:* ${obs}\n`;
+    mensagem += `\n*🖨️ IMPRIMIR PEDIDO:*\n${linkImpressao}\n`;
     mensagem += `\n_Obrigado pela preferência!_ ❤️`;
     
     const url = `https://wa.me/${NUMERO_WHATSAPP}?text=${encodeURIComponent(mensagem)}`;
@@ -304,7 +316,6 @@ function enviarPedidoWhatsApp() {
     fecharModal('modal-checkout');
 }
 
-// 8. Feedback visual
 function mostrarFeedback(msg) {
     const toast = document.createElement('div');
     toast.textContent = '✅ ' + msg;
@@ -318,5 +329,4 @@ function mostrarFeedback(msg) {
     setTimeout(() => toast.remove(), 1800);
 }
 
-// Iniciar
 iniciar();
