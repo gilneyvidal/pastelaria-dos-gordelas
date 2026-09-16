@@ -23,7 +23,6 @@ body {
     line-height: 1.4;
 }
 
-/* ===== HEADER ===== */
 header {
     background: linear-gradient(180deg, #000 0%, var(--cinza-escuro) 100%);
     text-align: center;
@@ -52,7 +51,6 @@ header::after {
 #logo-texto h1 { color: var(--amarelo); font-size: 22px; letter-spacing: 1px; font-weight: 800; }
 #logo-texto p { color: var(--cinza-texto); font-size: 12px; margin-top: 4px; }
 
-/* ===== CATEGORIAS ===== */
 #categorias {
     display: flex;
     overflow-x: auto;
@@ -87,7 +85,6 @@ header::after {
     box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
 }
 
-/* ===== PRODUTOS ===== */
 #cardapio { padding: 15px; display: flex; flex-direction: column; gap: 12px; }
 
 .produto-card {
@@ -134,7 +131,6 @@ header::after {
 .btn-add:active { background: #E0A800; }
 .btn-add:disabled { background: #444; color: #777; cursor: not-allowed; }
 
-/* ===== CARRINHO ===== */
 #carrinho-fixo {
     position: fixed;
     bottom: 0;
@@ -238,7 +234,6 @@ header::after {
 }
 #btn-finalizar:active { background: #1DA851; }
 
-/* ===== MODAIS ===== */
 .modal-escondido { display: none; }
 .modal-escondido.ativo { display: flex; }
 
@@ -285,7 +280,6 @@ header::after {
 .opcao-ingrediente:active { background: var(--preto); }
 .opcao-ingrediente input { width: 20px; height: 20px; accent-color: var(--amarelo); cursor: pointer; flex-shrink: 0; }
 
-/* Formulário de Checkout */
 .campo { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
 .campo span { font-size: 12px; color: var(--cinza-texto); font-weight: 600; }
 .campo input, .campo select, .campo textarea {
@@ -323,7 +317,6 @@ header::after {
 .opcoes-radio label:has(input:checked) { border-color: var(--amarelo); background-color: rgba(255, 193, 7, 0.1); }
 .opcoes-radio input { accent-color: var(--amarelo); margin: 0; }
 
-/* ===== SUB-OPÇÕES DE PAGAMENTO ===== */
 .sub-opcoes {
     background-color: var(--preto);
     border: 1.5px dashed var(--amarelo);
@@ -351,6 +344,90 @@ header::after {
     font-weight: 700;
 }
 .sub-opcoes .campo { margin-bottom: 0; }
+
+/* ===== PIX ===== */
+.qrcode-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #fff;
+    padding: 12px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    min-height: 220px;
+}
+.qrcode-container svg {
+    width: 200px;
+    height: 200px;
+    max-width: 100%;
+}
+.pix-valor {
+    text-align: center;
+    font-size: 14px;
+    color: var(--branco);
+    margin-bottom: 10px;
+}
+.pix-valor strong { color: var(--amarelo); font-size: 18px; }
+
+.btn-copiar-pix {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--amarelo);
+    color: var(--preto);
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-bottom: 12px;
+}
+.btn-copiar-pix:active { background: #E0A800; }
+
+.comprovante-area {
+    border-top: 1px dashed var(--cinza-borda);
+    padding-top: 12px;
+    margin-top: 8px;
+}
+.comprovante-area input[type="file"] {
+    width: 100%;
+    padding: 10px;
+    background-color: var(--cinza-escuro);
+    border: 1.5px solid var(--cinza-borda);
+    border-radius: 8px;
+    color: var(--branco);
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    margin-bottom: 8px;
+}
+.comprovante-area input[type="file"]::file-selector-button {
+    background-color: var(--amarelo);
+    color: var(--preto);
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+    margin-right: 8px;
+}
+.comprovante-preview {
+    width: 100%;
+    max-height: 200px;
+    object-fit: contain;
+    border-radius: 8px;
+    border: 1px solid var(--cinza-borda);
+    margin-bottom: 8px;
+    background: var(--preto);
+}
+.dica-comprovante {
+    display: block;
+    font-size: 11px;
+    color: var(--cinza-texto);
+    line-height: 1.3;
+    margin-top: 4px;
+}
 
 .resumo-checkout {
     background-color: var(--preto);
