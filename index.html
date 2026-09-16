@@ -8,7 +8,15 @@
 </head>
 <body>
     <header>
-        <img src="public/images/logo.png" alt="Pastelaria dos Gordelas" class="logo" onerror="this.style.display='none'; document.getElementById('logo-texto').style.display='block'">
+        <img 
+            src="public/images/logo.png" 
+            alt="Pastelaria dos Gordelas" 
+            class="logo" 
+            onerror="
+                if(!this.dataset.tentouJpg){ this.dataset.tentouJpg='1'; this.src='public/images/logo.jpg'; }
+                else if(!this.dataset.tentouWebp){ this.dataset.tentouWebp='1'; this.src='public/images/logo.webp'; }
+                else { this.style.display='none'; document.getElementById('logo-texto').style.display='block'; }
+            ">
         <div id="logo-texto" style="display:none;">
             <h1>PASTELARIA DOS GORDELAS</h1>
             <p>O melhor pastel, do seu jeito!</p>
