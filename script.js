@@ -1,32 +1,67 @@
 let produtos = [];
 let carrinho = [];
 let selecionados = [];
-let taxasEntrega = {};
 let taxaAtual = 0;
 
-const NUMERO_WHATSAPP = '5511943184268'; // Número do seu lead
+// Taxas de entrega embutidas como FALLBACK (caso o arquivo taxas.json não carregue)
+const TAXAS_PADRAO = {
+  "PARQUE OLÍMPICO": 4.00,
+  "VILA MUNICIPAL": 4.00,
+  "JARDIM UNIVERSO": 6.00,
+  "JD AEROPORTO 2": 7.00,
+  "JD AEROPORTO 3": 6.00,
+  "SANTO ANGELO": 9.00,
+  "CENTRO": 15.00,
+  "JUNDIAPEBA": 15.00,
+  "CÉZAR": 20.00,
+  "JD APOLLO": 7.00,
+  "JD ESPERANÇA": 6.00,
+  "JD IVETE": 7.00,
+  "SANTA TERESA": 7.00
+};
 
-// 1. Carregar dados iniciais
+let taxasEntrega = { ...TAXAS_PADRAO };
+
+const NUMERO_WHATSAPP = '5511943184268';
+
+// 1. Carregar dados iniciais (blindado contra erros)
 async function iniciar() {
+    // Tenta carregar taxas.json (se existir, sobrescreve as padrão)
     try {
-        const [resProdutos, resTaxas] = await Promise.all([
-            fetch('./data/produtos.json'),
-            fetch('./data/taxas.json')
-        ]);
+        const resTaxas = await fetch('./data/taxas.json');
+        if (resTaxas.ok) {
+            taxasEntrega = await resTaxas.json();
+            console.log('✅ Taxas carregadas do arquivo.');
+        }
+    } catch (e) {
+        console.warn('⚠️ taxas.json não encontrado, usando taxas padrão embutidas.');
+    }
+
+    // Carrega produtos.json (obrigatório)
+    try {
+        const resProdutos = await fetch('./data/produtos.json');
+        if (!resProdutos.ok) throw new Error('Arquivo produtos.json não encontrado');
         produtos = await resProdutos.json();
-        taxasEntrega = await resTaxas.json();
+        console.log('✅ Produtos carregados:', produtos.length);
         
         renderizarCategorias();
-        renderizarProdutos('tradicionais');
+        renderizarProdutos(produtos[0]?.categoria || 'tradicionais');
         popularBairros();
     } catch (erro) {
-        console.error('Erro ao carregar dados:', erro);
-        document.getElementById('cardapio').innerHTML = '<p style="text-align:center; padding:20px;">Erro ao carregar o cardápio. Recarregue a página.</p>';
+        console.error('❌ Erro ao carregar produtos:', erro);
+        document.getElementById('cardapio').innerHTML = `
+            <div style="text-align:center; padding:40px 20px;">
+                <p style="color:#E53935; font-weight:bold; margin-bottom:10px;">Erro ao carregar o cardápio 😢</p>
+                <p style="font-size:12px; color:#B0B0B0;">Verifique se o arquivo <strong>data/produtos.json</strong> existe no repositório.</p>
+                <p style="font-size:11px; color:#666; margin-top:10px;">Detalhe: ${erro.message}</p>
+            </div>
+        `;
     }
 }
 
 function popularBairros() {
     const select = document.getElementById('cli-bairro');
+    select.innerHTML = '<option value="">Selecione o bairro</option>';
     Object.keys(taxasEntrega).forEach(bairro => {
         const opt = document.createElement('option');
         opt.value = bairro;
@@ -59,6 +94,11 @@ function renderizarProdutos(categoria) {
     const container = document.getElementById('cardapio');
     container.innerHTML = '';
     const filtrados = produtos.filter(p => p.categoria === categoria);
+    
+    if (filtrados.length === 0) {
+        container.innerHTML = '<p style="text-align:center; padding:20px; color:#B0B0B0;">Nenhum produto nesta categoria ainda.</p>';
+        return;
+    }
     
     filtrados.forEach(p => {
         const card = document.createElement('div');
@@ -103,9 +143,9 @@ function atualizarCarrinho() {
     document.getElementById('qtd-itens').textContent = qtdTotal;
     document.getElementById('total-carrinho').textContent = subtotal.toFixed(2).replace('.', ',');
     
-    // Atualiza resumo do checkout também
-    document.getElementById('resumo-subtotal').textContent = subtotal.toFixed(2).replace('.', ',');
-    atualizarTotalCheckout();
+    const elSub = document.getElementById('resumo-subtotal');
+    if (elSub) elSub.textContent = subtotal.toFixed(2).replace('.', ',');
+    if (typeof atualizarTotalCheckout === 'function') atualizarTotalCheckout();
 
     const container = document.getElementById('itens-carrinho');
     if (carrinho.length === 0) {
@@ -177,7 +217,7 @@ function fecharModal(id) { document.getElementById(id).classList.remove('ativo')
 // 6. Checkout
 function abrirCheckout() {
     if (carrinho.length === 0) { alert('Seu carrinho está vazio!'); return; }
-    toggleCarrinho(); // Fecha o carrinho
+    toggleCarrinho();
     atualizarTotalCheckout();
     document.getElementById('modal-checkout').classList.add('ativo');
 }
@@ -192,7 +232,6 @@ function toggleEndereco() {
 function calcularTaxa() {
     const modalidade = document.querySelector('input[name="modalidade"]:checked').value;
     const bairro = document.getElementById('cli-bairro').value;
-    
     if (modalidade === 'entrega' && bairro && taxasEntrega[bairro]) {
         taxaAtual = taxasEntrega[bairro];
     } else {
@@ -203,10 +242,15 @@ function calcularTaxa() {
 
 function atualizarTotalCheckout() {
     const subtotal = carrinho.reduce((acc, i) => acc + (i.preco * i.quantidade), 0);
-    document.getElementById('resumo-subtotal').textContent = subtotal.toFixed(2).replace('.', ',');
-    document.getElementById('resumo-taxa').textContent = taxaAtual.toFixed(2).replace('.', ',');
-    document.getElementById('linha-taxa').style.display = taxaAtual > 0 ? 'flex' : 'none';
-    document.getElementById('resumo-total').textContent = (subtotal + taxaAtual).toFixed(2).replace('.', ',');
+    const elSub = document.getElementById('resumo-subtotal');
+    const elTaxa = document.getElementById('resumo-taxa');
+    const elLinhaTaxa = document.getElementById('linha-taxa');
+    const elTotal = document.getElementById('resumo-total');
+    if (!elSub) return;
+    elSub.textContent = subtotal.toFixed(2).replace('.', ',');
+    elTaxa.textContent = taxaAtual.toFixed(2).replace('.', ',');
+    elLinhaTaxa.style.display = taxaAtual > 0 ? 'flex' : 'none';
+    elTotal.textContent = (subtotal + taxaAtual).toFixed(2).replace('.', ',');
 }
 
 // 7. Enviar Pedido
@@ -232,8 +276,9 @@ function enviarPedidoWhatsApp() {
     const idPedido = 'GORDELA-' + Math.random().toString(36).substring(2, 8).toUpperCase();
     
     const itensTexto = carrinho.map(i => `• ${i.quantidade}x ${i.nome} — R$ ${(i.preco * i.quantidade).toFixed(2).replace('.', ',')}`).join('\n');
-    const subtotal = carrinho.reduce((acc, i) => acc + (i.preco * i.quantidade), 0).toFixed(2).replace('.', ',');
-    const total = (parseFloat(subtotal.replace(',', '.')) + taxaAtual).toFixed(2).replace('.', ',');
+    const subtotalNum = carrinho.reduce((acc, i) => acc + (i.preco * i.quantidade), 0);
+    const subtotal = subtotalNum.toFixed(2).replace('.', ',');
+    const total = (subtotalNum + taxaAtual).toFixed(2).replace('.', ',');
     
     const modalidadeTexto = modalidade === 'entrega' ? '🛵 Entrega' : (modalidade === 'retirada' ? '🏃 Retirada' : '🍽️ Consumo no Local');
     
@@ -254,20 +299,19 @@ function enviarPedidoWhatsApp() {
     const url = `https://wa.me/${NUMERO_WHATSAPP}?text=${encodeURIComponent(mensagem)}`;
     window.open(url, '_blank');
     
-    // Limpar carrinho após enviar
     carrinho = [];
     atualizarCarrinho();
     fecharModal('modal-checkout');
 }
 
-// 8. Feedback visual (toast)
+// 8. Feedback visual
 function mostrarFeedback(msg) {
     const toast = document.createElement('div');
     toast.textContent = '✅ ' + msg;
     toast.style.cssText = `
         position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
-        background: var(--verde); color: white; padding: 10px 20px; border-radius: 20px;
-        font-weight: 600; font-size: 13px; z-index: 300; animation: fadeIn 0.3s;
+        background: #25D366; color: white; padding: 10px 20px; border-radius: 20px;
+        font-weight: 600; font-size: 13px; z-index: 300;
         box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     `;
     document.body.appendChild(toast);
