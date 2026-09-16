@@ -13,7 +13,7 @@
     "categoria": "tradicionais",
     "nome": "Carne com Queijo",
     "descricao": "Carne moída temperada com mussarela derretida.",
-    "preco": 16.00,
+    "preco": 16,
     "foto": "carne_queijo.jpg",
     "esgotado": false
   },
@@ -22,7 +22,7 @@
     "categoria": "tradicionais",
     "nome": "Mussarela",
     "descricao": "Mussarela pura e derretida.",
-    "preco": 12.00,
+    "preco": 12,
     "foto": "mussarela.jpg",
     "esgotado": false
   },
@@ -31,7 +31,7 @@
     "categoria": "especiais",
     "nome": "Carne de Panela com Queijo",
     "descricao": "Carne de panela desfiada com queijo derretido.",
-    "preco": 25.00,
+    "preco": 25,
     "foto": "carne_panela.jpg",
     "esgotado": false
   },
@@ -40,7 +40,7 @@
     "categoria": "especiais",
     "nome": "Carne Moída com Mandioca e Queijo",
     "descricao": "Carne moída, mandioca cozida e queijo.",
-    "preco": 25.00,
+    "preco": 25,
     "foto": "carne_mandioca.jpg",
     "esgotado": false
   },
@@ -49,12 +49,22 @@
     "categoria": "monte-o-seu",
     "nome": "Pegue e Monte (Até 5 Sabores)",
     "descricao": "Escolha até 5 recheios para o seu pastel. Preço fixo.",
-    "preco": 30.00,
+    "preco": 30,
     "foto": "monte_seu.jpg",
     "opcoes": [
-      "Carne Moída", "Mandioca", "Catupiry", "Milho", "Ovo", 
-      "Azeitona", "Carne Seca", "Mussarela", "Presunto", 
-      "Calabresa", "Cebola", "Tomate", "Cheddar"
+      "Carne Moída",
+      "Mandioca",
+      "Catupiry",
+      "Milho",
+      "Ovo",
+      "Azeitona",
+      "Carne Seca",
+      "Mussarela",
+      "Presunto",
+      "Calabresa",
+      "Cebola",
+      "Tomate",
+      "Cheddar"
     ],
     "esgotado": false
   },
@@ -63,7 +73,7 @@
     "categoria": "doces",
     "nome": "Borda Solta de Nutella",
     "descricao": "Pastel de borda solta recheado com Nutella.",
-    "preco": 15.00,
+    "preco": 15,
     "foto": "nutella.jpg",
     "esgotado": false
   },
@@ -72,7 +82,7 @@
     "categoria": "doces",
     "nome": "Borda Solta de Doce de Leite",
     "descricao": "Pastel de borda solta recheado com doce de leite.",
-    "preco": 10.00,
+    "preco": 10,
     "foto": "doce_leite.jpg",
     "esgotado": false
   },
@@ -81,8 +91,17 @@
     "categoria": "doces",
     "nome": "Borda Solta de Romeu e Julieta",
     "descricao": "Pastel de borda solta com goiabada e queijo.",
-    "preco": 13.00,
+    "preco": 13,
     "foto": "romeu_julieta.jpg",
+    "esgotado": false
+  },
+  {
+    "id": "produto-mu3hm83o",
+    "categoria": "tradicionais",
+    "nome": "PASTEL TESTE",
+    "descricao": "Pastel de teste",
+    "preco": 1,
+    "foto": "produto-1789526066934.jpg",
     "esgotado": false
   }
 ]
