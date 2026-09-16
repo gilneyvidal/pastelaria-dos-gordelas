@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pastelaria dos Gordelas</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 </head>
 <body>
     <header>
@@ -92,6 +93,21 @@
                     <label><input type="radio" name="pagamento" value="Pix" checked onchange="toggleSubPagamento()"> 💠 Pix</label>
                     <label><input type="radio" name="pagamento" value="Cartão" onchange="toggleSubPagamento()"> 💳 Cartão</label>
                     <label><input type="radio" name="pagamento" value="Dinheiro" onchange="toggleSubPagamento()"> 💵 Dinheiro</label>
+                </div>
+            </div>
+
+            <!-- Sub-opções do PIX -->
+            <div id="sub-pagamento-pix" class="sub-opcoes">
+                <span class="sub-label">📱 Escaneie o QR Code abaixo com o app do seu banco:</span>
+                <div id="qrcode-container" class="qrcode-container"></div>
+                <div class="pix-valor">Valor a pagar: <strong>R$ <span id="pix-valor">0,00</span></strong></div>
+                <button class="btn-copiar-pix" onclick="copiarPix()">📋 Copiar código Pix (Copia e Cola)</button>
+                
+                <div class="comprovante-area">
+                    <span class="sub-label">📎 Anexar comprovante (opcional)</span>
+                    <input type="file" id="cli-comprovante" accept="image/*" onchange="previewComprovante(this)">
+                    <img id="comprovante-preview" class="comprovante-preview" style="display:none;">
+                    <small class="dica-comprovante">💡 Se anexar aqui, o comprovante será compartilhado junto com o pedido no WhatsApp.</small>
                 </div>
             </div>
 
