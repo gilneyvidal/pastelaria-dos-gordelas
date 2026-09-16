@@ -19,7 +19,6 @@
 
     <main id="cardapio"></main>
 
-    <!-- Carrinho Fixo -->
     <div id="carrinho-fixo" class="carrinho-fechado">
         <div class="carrinho-header" onclick="toggleCarrinho()">
             <span>🛒 Meu Pedido (<span id="qtd-itens">0</span>)</span>
@@ -29,7 +28,6 @@
         <button id="btn-finalizar" onclick="abrirCheckout()">Finalizar Pedido</button>
     </div>
 
-    <!-- Modal Monte o Seu -->
     <div id="modal-monter" class="modal-escondido">
         <div class="modal-conteudo">
             <h2>Escolha até 5 Sabores</h2>
@@ -40,7 +38,6 @@
         </div>
     </div>
 
-    <!-- Modal de Checkout -->
     <div id="modal-checkout" class="modal-escondido">
         <div class="modal-conteudo">
             <h2>Finalizar Pedido</h2>
@@ -84,10 +81,27 @@
             <div class="campo">
                 <span>Forma de Pagamento *</span>
                 <div class="opcoes-radio">
-                    <label><input type="radio" name="pagamento" value="Pix" checked> 💠 Pix</label>
-                    <label><input type="radio" name="pagamento" value="Cartão"> 💳 Cartão</label>
-                    <label><input type="radio" name="pagamento" value="Dinheiro"> 💵 Dinheiro</label>
+                    <label><input type="radio" name="pagamento" value="Pix" checked onchange="toggleSubPagamento()"> 💠 Pix</label>
+                    <label><input type="radio" name="pagamento" value="Cartão" onchange="toggleSubPagamento()"> 💳 Cartão</label>
+                    <label><input type="radio" name="pagamento" value="Dinheiro" onchange="toggleSubPagamento()"> 💵 Dinheiro</label>
                 </div>
+            </div>
+
+            <!-- Sub-opções do Cartão -->
+            <div id="sub-pagamento-cartao" class="sub-opcoes" style="display:none;">
+                <span class="sub-label">Tipo de Cartão:</span>
+                <div class="opcoes-radio">
+                    <label><input type="radio" name="tipo-cartao" value="Débito" checked> Débito</label>
+                    <label><input type="radio" name="tipo-cartao" value="Crédito"> Crédito</label>
+                </div>
+            </div>
+
+            <!-- Sub-opção do Dinheiro (troco) -->
+            <div id="sub-pagamento-dinheiro" class="sub-opcoes" style="display:none;">
+                <label class="campo">
+                    <span>Precisa de troco? Para quanto?</span>
+                    <input type="text" id="cli-troco" placeholder="Ex: 100,00 (deixe vazio se não precisar)">
+                </label>
             </div>
 
             <label class="campo">
