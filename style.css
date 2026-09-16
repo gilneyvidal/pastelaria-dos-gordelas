@@ -323,6 +323,35 @@ header::after {
 .opcoes-radio label:has(input:checked) { border-color: var(--amarelo); background-color: rgba(255, 193, 7, 0.1); }
 .opcoes-radio input { accent-color: var(--amarelo); margin: 0; }
 
+/* ===== SUB-OPÇÕES DE PAGAMENTO ===== */
+.sub-opcoes {
+    background-color: var(--preto);
+    border: 1.5px dashed var(--amarelo);
+    border-radius: 10px;
+    padding: 12px;
+    margin: -6px 0 14px 0;
+    animation: fadeIn 0.25s;
+}
+.sub-label {
+    display: block;
+    font-size: 12px;
+    color: var(--amarelo);
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+.sub-opcoes .opcoes-radio label {
+    background-color: var(--cinza-escuro);
+    padding: 8px 12px;
+    font-size: 13px;
+}
+.sub-opcoes .opcoes-radio label:has(input:checked) {
+    background-color: rgba(255, 193, 7, 0.15);
+    border-color: var(--amarelo);
+    color: var(--amarelo);
+    font-weight: 700;
+}
+.sub-opcoes .campo { margin-bottom: 0; }
+
 .resumo-checkout {
     background-color: var(--preto);
     border-radius: 12px;
