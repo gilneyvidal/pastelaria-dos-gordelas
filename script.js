@@ -38,26 +38,26 @@ async function iniciar() {
         const resTaxas = await fetch('./data/taxas.json');
         if (resTaxas.ok) {
             taxasEntrega = await resTaxas.json();
-            console.log('✅ Taxas carregadas do arquivo.');
+            console.log('Taxas carregadas do arquivo.');
         }
     } catch (e) {
-        console.warn('⚠️ taxas.json não encontrado, usando taxas padrão.');
+        console.warn('taxas.json nao encontrado, usando taxas padrao.');
     }
 
     try {
         const resProdutos = await fetch('./data/produtos.json');
-        if (!resProdutos.ok) throw new Error('Arquivo produtos.json não encontrado');
+        if (!resProdutos.ok) throw new Error('Arquivo produtos.json nao encontrado');
         produtos = await resProdutos.json();
-        console.log('✅ Produtos carregados:', produtos.length);
+        console.log('Produtos carregados:', produtos.length);
         
         renderizarCategorias();
         renderizarProdutos(produtos[0]?.categoria || 'tradicionais');
         popularBairros();
     } catch (erro) {
-        console.error('❌ Erro ao carregar produtos:', erro);
+        console.error('Erro ao carregar produtos:', erro);
         document.getElementById('cardapio').innerHTML = `
             <div style="text-align:center; padding:40px 20px;">
-                <p style="color:#E53935; font-weight:bold; margin-bottom:10px;">Erro ao carregar o cardápio 😢</p>
+                <p style="color:#E53935; font-weight:bold; margin-bottom:10px;">Erro ao carregar o cardapio</p>
                 <p style="font-size:12px; color:#B0B0B0;">Verifique se o arquivo <strong>data/produtos.json</strong> existe.</p>
             </div>
         `;
@@ -153,7 +153,7 @@ function atualizarCarrinho() {
 
     const container = document.getElementById('itens-carrinho');
     if (carrinho.length === 0) {
-        container.innerHTML = '<p style="text-align:center; padding:15px; font-size:12px; color:var(--cinza-texto);">Seu carrinho está vazio.</p>';
+        container.innerHTML = '<p style="text-align:center; padding:15px; font-size:12px; color:var(--cinza-texto);">Seu carrinho esta vazio.</p>';
         return;
     }
 
@@ -199,7 +199,7 @@ function abrirModalMonte() {
 
 function atualizarSelecao(cb) {
     if (cb.checked) {
-        if (selecionados.length >= 5) { alert('Você já escolheu 5 sabores!'); cb.checked = false; return; }
+        if (selecionados.length >= 5) { alert('Voce ja escolheu 5 sabores!'); cb.checked = false; return; }
         selecionados.push(cb.value);
     } else selecionados = selecionados.filter(s => s !== cb.value);
     document.getElementById('contador-sabores').textContent = `${selecionados.length} / 5`;
@@ -220,7 +220,7 @@ function fecharModal(id) { document.getElementById(id).classList.remove('ativo')
 
 // ===== CHECKOUT =====
 function abrirCheckout() {
-    if (carrinho.length === 0) { alert('Seu carrinho está vazio!'); return; }
+    if (carrinho.length === 0) { alert('Seu carrinho esta vazio!'); return; }
     idPedidoAtual = 'GORDELA-' + Math.random().toString(36).substring(2, 8).toUpperCase();
     toggleCarrinho();
     atualizarTotalCheckout();
@@ -343,12 +343,12 @@ function atualizarQRCodePix() {
         container.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 4, scalable: true });
     } catch (e) {
         console.error('Erro ao gerar QR Code:', e);
-        container.innerHTML = '<p style="color:#E53935; font-size:12px; padding:10px; text-align:center;">Erro ao gerar QR Code. Use o botão Copiar Pix abaixo.</p>';
+        container.innerHTML = '<p style="color:#E53935; font-size:12px; padding:10px; text-align:center;">Erro ao gerar QR Code. Use o botao Copiar Pix abaixo.</p>';
     }
 }
 
 function copiarPix() {
-    if (!pixPayload) { alert('QR Code ainda não foi gerado.'); return; }
+    if (!pixPayload) { alert('QR Code ainda nao foi gerado.'); return; }
     
     const fazerCopia = () => {
         const ta = document.createElement('textarea');
@@ -359,16 +359,16 @@ function copiarPix() {
         ta.select();
         try {
             document.execCommand('copy');
-            mostrarFeedback('Código Pix copiado!');
+            mostrarFeedback('Codigo Pix copiado!');
         } catch (e) {
-            alert('Não foi possível copiar. Selecione o texto manualmente.');
+            alert('Nao foi possivel copiar. Selecione o texto manualmente.');
         }
         document.body.removeChild(ta);
     };
     
     if (navigator.clipboard) {
         navigator.clipboard.writeText(pixPayload).then(() => {
-            mostrarFeedback('Código Pix copiado!');
+            mostrarFeedback('Codigo Pix copiado!');
         }).catch(fazerCopia);
     } else {
         fazerCopia();
@@ -388,7 +388,7 @@ function previewComprovante(input) {
     }
     
     if (file.size > 5 * 1024 * 1024) {
-        alert('Imagem muito grande. Escolha uma foto de até 5MB.');
+        alert('Imagem muito grande. Escolha uma foto de ate 5MB.');
         input.value = '';
         comprovanteFile = null;
         document.getElementById('comprovante-preview').style.display = 'none';
@@ -439,7 +439,6 @@ function enviarPedidoWhatsApp() {
     if (!nome) { alert('Por favor, preencha seu nome.'); return; }
     if (!telefone) { alert('Por favor, preencha seu telefone.'); return; }
     
-    // Se for Pix, exige comprovante
     if (pagamentoBase === 'Pix' && !comprovanteFile) {
         alert('Por favor, anexe o comprovante do Pix antes de enviar.');
         return;
@@ -448,7 +447,7 @@ function enviarPedidoWhatsApp() {
     let pagamento = pagamentoBase;
     if (pagamentoBase === 'Cartão') {
         const tipoCartao = document.querySelector('input[name="tipo-cartao"]:checked').value;
-        pagamento = `Cartão (${tipoCartao})`;
+        pagamento = `Cartao (${tipoCartao})`;
     } else if (pagamentoBase === 'Dinheiro') {
         const troco = document.getElementById('cli-troco').value.trim();
         if (troco) pagamento = `Dinheiro (troco para R$ ${troco})`;
@@ -461,8 +460,8 @@ function enviarPedidoWhatsApp() {
         const endereco = document.getElementById('cli-endereco').value.trim();
         const bairro = document.getElementById('cli-bairro').value.trim();
         const complemento = document.getElementById('cli-complemento').value.trim();
-        if (!endereco || !bairro) { alert('Preencha o endereço e o bairro.'); return; }
-        enderecoTexto = `\n*Endereço:* ${endereco}${complemento ? ', ' + complemento : ''}\n*Bairro:* ${bairro}`;
+        if (!endereco || !bairro) { alert('Preencha o endereco e o bairro.'); return; }
+        enderecoTexto = `\n*Endereco:* ${endereco}${complemento ? ', ' + complemento : ''}\n*Bairro:* ${bairro}`;
         enderecoParam = endereco + (complemento ? ', ' + complemento : '');
         bairroParam = bairro;
     }
@@ -471,13 +470,15 @@ function enviarPedidoWhatsApp() {
         idPedidoAtual = 'GORDELA-' + Math.random().toString(36).substring(2, 8).toUpperCase();
     }
     
-    const itensTexto = carrinho.map(i => `• ${i.quantidade}x ${i.nome} — R$ ${(i.preco * i.quantidade).toFixed(2).replace('.', ',')}`).join('\n');
+    const itensTexto = carrinho.map(i => `- ${i.quantidade}x ${i.nome} - R$ ${(i.preco * i.quantidade).toFixed(2).replace('.', ',')}`).join('\n');
     const subtotalNum = carrinho.reduce((acc, i) => acc + (i.preco * i.quantidade), 0);
     const subtotal = subtotalNum.toFixed(2).replace('.', ',');
     const totalNum = subtotalNum + taxaAtual;
     const total = totalNum.toFixed(2).replace('.', ',');
     
-    const modalidadeTexto = modalidade === 'entrega' ? '🛵 Entrega' : (modalidade === 'retirada' ? '🏃 Retirada' : '🍽️ Consumo no Local');
+    let modalidadeTexto = 'Entrega';
+    if (modalidade === 'retirada') modalidadeTexto = 'Retirada';
+    else if (modalidade === 'local') modalidadeTexto = 'Consumo no Local';
     
     const itensParam = carrinho.map(i => 
         `${i.quantidade}x ${i.nome}:${(i.preco * i.quantidade).toFixed(2).replace('.', ',')}`
@@ -497,25 +498,28 @@ function enviarPedidoWhatsApp() {
         `&pag=${encodeURIComponent(pagamento)}` +
         `&obs=${encodeURIComponent(obs)}`;
     
-    let mensagem = `*🟡 NOVO PEDIDO — PASTELARIA DOS GORDELAS*\n`;
+    // ===== MENSAGEM LIMPA, SEM EMOJIS =====
+    let mensagem = `*NOVO PEDIDO - PASTELARIA DOS GORDELAS*\n\n`;
     mensagem += `*ID:* ${idPedidoAtual}\n\n`;
-    mensagem += `*👤 Cliente:* ${nome}\n`;
-    mensagem += `*📞 Telefone:* ${telefone}\n`;
-    mensagem += `*📦 Modalidade:* ${modalidadeTexto}\n`;
+    mensagem += `*Cliente:* ${nome}\n`;
+    mensagem += `*Telefone:* ${telefone}\n`;
+    mensagem += `*Modalidade:* ${modalidadeTexto}\n`;
     if (enderecoTexto) mensagem += enderecoTexto + '\n';
-    mensagem += `\n*🛒 Itens:*\n${itensTexto}\n\n`;
+    mensagem += `\n*ITENS:*\n${itensTexto}\n\n`;
     mensagem += `*Subtotal:* R$ ${subtotal}\n`;
     if (taxaAtual > 0) mensagem += `*Taxa de Entrega:* R$ ${taxaAtual.toFixed(2).replace('.', ',')}\n`;
-    mensagem += `*💰 TOTAL: R$ ${total}*\n\n`;
-    mensagem += `*💳 Pagamento:* ${pagamento}\n`;
-    if (obs) mensagem += `*📝 Obs:* ${obs}\n`;
-    mensagem += `\n*🖨️ IMPRIMIR PEDIDO:*\n${linkImpressao}\n`;
+    mensagem += `*TOTAL: R$ ${total}*\n\n`;
+    mensagem += `*Pagamento:* ${pagamento}\n`;
+    if (obs) mensagem += `*Obs:* ${obs}\n`;
+    mensagem += `\n*IMPRIMIR PEDIDO:*\n${linkImpressao}\n`;
     
     if (pagamentoBase === 'Pix' && comprovanteFile) {
-        mensagem += `\n📎 *COMPROVANTE DO PIX será enviado em seguida nesta conversa.*`;
+        mensagem += `\n------------------------------------\n`;
+        mensagem += `*COMPROVANTE DO PIX SERA ENVIADO EM SEGUIDA NESTA CONVERSA.*\n`;
+        mensagem += `------------------------------------`;
     }
     
-    mensagem += `\n\n_Obrigado pela preferência!_ ❤️`;
+    mensagem += `\n\n_Obrigado pela preferencia!_`;
     
     // 1) Baixa o comprovante automaticamente (se houver)
     if (comprovanteFile) {
@@ -528,7 +532,7 @@ function enviarPedidoWhatsApp() {
     
     // 3) Feedback e limpeza
     if (comprovanteFile) {
-        mostrarFeedback('Comprovante salvo na galeria! Anexe no WhatsApp 📎');
+        mostrarFeedback('Comprovante salvo! Anexe no WhatsApp');
     }
     
     carrinho = [];
@@ -540,10 +544,10 @@ function enviarPedidoWhatsApp() {
 // ===== FEEDBACK VISUAL =====
 function mostrarFeedback(msg) {
     const toast = document.createElement('div');
-    toast.textContent = '✅ ' + msg;
+    toast.textContent = msg;
     toast.style.cssText = `
         position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
-        background: #25D366; color: white; padding: 10px 20px; border-radius: 20px;
+        background: #25D366; color: white; padding: 12px 24px; border-radius: 20px;
         font-weight: 600; font-size: 13px; z-index: 300;
         box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         max-width: 90vw; text-align: center;
