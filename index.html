@@ -104,10 +104,15 @@
                 <button class="btn-copiar-pix" onclick="copiarPix()">📋 Copiar código Pix (Copia e Cola)</button>
                 
                 <div class="comprovante-area">
-                    <span class="sub-label">📎 Anexar comprovante (opcional)</span>
+                    <span class="sub-label">📎 Anexe o comprovante do Pix (obrigatório)</span>
                     <input type="file" id="cli-comprovante" accept="image/*" onchange="previewComprovante(this)">
                     <img id="comprovante-preview" class="comprovante-preview" style="display:none;">
-                    <small class="dica-comprovante">💡 Se anexar aqui, o comprovante será compartilhado junto com o pedido no WhatsApp.</small>
+                    <button type="button" id="btn-salvar-comprovante" class="btn-salvar-comprovante" style="display:none;" onclick="salvarComprovanteManual()">
+                        📥 Salvar comprovante na galeria
+                    </button>
+                    <small class="dica-comprovante">
+                        💡 <strong>Como enviar:</strong> após clicar em "Enviar Pedido", o WhatsApp da pastelaria abre automaticamente. Toque em 📎 e escolha o comprovante que você acabou de salvar.
+                    </small>
                 </div>
             </div>
 
