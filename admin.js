@@ -1,10 +1,8 @@
-// ===== CONFIG DO REPOSITÓRIO =====
 const GITHUB_OWNER = 'gilneyvidal';
 const GITHUB_REPO = 'pastelaria-dos-gordelas';
 const GITHUB_BRANCH = 'main';
 const API_URL = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/`;
 
-// ===== ESTADO =====
 let token = '';
 let produtos = [];
 let categorias = [];
@@ -14,7 +12,6 @@ let shaProdutos = '', shaCategorias = '', shaTaxas = '', shaConfig = '';
 let fotoBase64 = null, fotoAtual = '';
 let indiceEditando = -1, categoriaOriginal = '';
 
-// ===== BASE64 UTF-8 =====
 function utf8ToBase64(str) {
     const bytes = new TextEncoder().encode(str);
     let binary = '';
@@ -29,7 +26,6 @@ function base64ToUtf8(b64) {
     return new TextDecoder().decode(bytes);
 }
 
-// ===== GITHUB API =====
 async function ghGet(path) {
     const res = await fetch(`${API_URL}${path}?ref=${GITHUB_BRANCH}&t=${Date.now()}`, {
         headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' }
@@ -51,7 +47,6 @@ async function ghPut(path, contentB64, sha, message) {
     return res.json();
 }
 
-// ===== STATUS =====
 function status(msg, tipo = 'info') {
     const el = document.getElementById('status-bar');
     el.textContent = msg;
@@ -59,7 +54,6 @@ function status(msg, tipo = 'info') {
     if (tipo === 'sucesso') setTimeout(() => el.className = 'status-bar', 4000);
 }
 
-// ===== LOGIN =====
 function fazerLogin() {
     const t = document.getElementById('input-token').value.trim();
     if (!t) { alert('Cole o token!'); return; }
@@ -73,7 +67,6 @@ function fazerLogout() {
     location.reload();
 }
 
-// ===== INICIAR =====
 async function iniciarPainel() {
     document.getElementById('tela-login').style.display = 'none';
     document.getElementById('painel').classList.remove('painel-escondido');
@@ -101,18 +94,81 @@ async function iniciarPainel() {
     }
 }
 
-// ===== RENDER =====
 function renderizarTudo() {
+    renderizarDashboard();
     renderizarProdutos();
     renderizarCategoriasLista();
     renderizarTaxas();
     renderizarConfig();
     popularSelectCategorias();
 }
+
 function popularSelectCategorias() {
     const s = document.getElementById('prod-categoria');
     s.innerHTML = categorias.map(c => `<option value="${c}">${c.charAt(0).toUpperCase() + c.slice(1)}</option>`).join('');
 }
+
+function renderizarDashboard() {
+    const totalProdutos = produtos.length;
+    const totalEsgotados = produtos.filter(p => p.esgotado).length;
+    const totalCategorias = categorias.length;
+    const totalBairros = Object.keys(taxas).length;
+    const precoMedio = totalProdutos > 0 
+        ? (produtos.reduce((a, p) => a + Number(p.preco), 0) / totalProdutos).toFixed(2).replace('.', ',')
+        : '0,00';
+
+    document.getElementById('dashboard-stats').innerHTML = `
+        <div class="stat-grid">
+            <div class="stat-card">
+                <div>
+                    <div class="label">Produtos Ativos</div>
+                    <div class="valor">${totalProdutos - totalEsgotados}</div>
+                </div>
+                <span class="emoji">📦</span>
+            </div>
+            <div class="stat-card">
+                <div>
+                    <div class="label">Esgotados</div>
+                    <div class="valor" style="color:var(--vermelho)">${totalEsgotados}</div>
+                </div>
+                <span class="emoji">🚫</span>
+            </div>
+            <div class="stat-card">
+                <div>
+                    <div class="label">Categorias</div>
+                    <div class="valor">${totalCategorias}</div>
+                </div>
+                <span class="emoji">📂</span>
+            </div>
+            <div class="stat-card">
+                <div>
+                    <div class="label">Bairros Atendidos</div>
+                    <div class="valor">${totalBairros}</div>
+                </div>
+                <span class="emoji">🛵</span>
+            </div>
+        </div>
+        <div class="stat-card" style="margin-top:10px;">
+            <div>
+                <div class="label">Preço Médio dos Produtos</div>
+                <div class="valor">R$ ${precoMedio}</div>
+            </div>
+            <span class="emoji">💰</span>
+        </div>
+    `;
+
+    document.getElementById('dashboard-categorias').innerHTML = 
+        `<div class="lista-simples">` + categorias.map(cat => {
+            const qtd = produtos.filter(p => p.categoria === cat).length;
+            return `<div class="linha"><span>${cat.charAt(0).toUpperCase() + cat.slice(1)}</span><strong>${qtd} produto(s)</strong></div>`;
+        }).join('') + `</div>`;
+
+    document.getElementById('dashboard-taxas').innerHTML = 
+        `<div class="lista-simples">` + Object.entries(taxas).map(([b, v]) => 
+            `<div class="linha"><span>${b}</span><strong>R$ ${Number(v).toFixed(2).replace('.', ',')}</strong></div>`
+        ).join('') + `</div>`;
+}
+
 function renderizarProdutos() {
     const c = document.getElementById('lista-produtos');
     if (produtos.length === 0) { c.innerHTML = '<p style="text-align:center;color:#B0B0B0;padding:20px;">Nenhum produto.</p>'; return; }
@@ -130,6 +186,7 @@ function renderizarProdutos() {
             </div>
         </div>`).join('');
 }
+
 function renderizarCategoriasLista() {
     const c = document.getElementById('lista-categorias');
     c.innerHTML = categorias.map(cat => {
@@ -143,6 +200,7 @@ function renderizarCategoriasLista() {
         </div>`;
     }).join('') || '<p style="text-align:center;color:#B0B0B0;padding:20px;">Nenhuma categoria.</p>';
 }
+
 function renderizarTaxas() {
     const c = document.getElementById('lista-taxas');
     c.innerHTML = Object.entries(taxas).map(([b, v]) => `
@@ -152,6 +210,7 @@ function renderizarTaxas() {
             <button class="btn-remover" onclick="this.parentElement.remove()">×</button>
         </div>`).join('');
 }
+
 function adicionarLinhaTaxa() {
     const c = document.getElementById('lista-taxas');
     const div = document.createElement('div');
@@ -159,12 +218,12 @@ function adicionarLinhaTaxa() {
     div.innerHTML = `<input type="text" class="bairro" placeholder="Nome do bairro"><input type="number" class="valor" step="0.01" placeholder="0.00"><button class="btn-remover" onclick="this.parentElement.remove()">×</button>`;
     c.appendChild(div);
 }
+
 function renderizarConfig() {
     document.getElementById('cfg-nome').value = config.nomeLoja || '';
     document.getElementById('cfg-whatsapp').value = config.whatsapp || '';
 }
 
-// ===== MODAL PRODUTO =====
 function abrirModalProduto(i) {
     indiceEditando = (i !== undefined && i >= 0) ? i : -1;
     document.getElementById('modal-produto-titulo').textContent = indiceEditando >= 0 ? 'Editar Produto' : 'Novo Produto';
@@ -262,7 +321,6 @@ async function salvarProduto() {
         if (indiceEditando >= 0) produtos[indiceEditando] = novo;
         else produtos.push(novo);
         
-        // Atualiza também categorias se for nova
         if (!categorias.includes(categoria)) {
             categorias.push(categoria);
             const rC = await ghPut('data/categorias.json', utf8ToBase64(JSON.stringify(categorias, null, 2)), shaCategorias, 'Nova categoria');
@@ -294,7 +352,6 @@ async function excluirProduto(i) {
     } catch (e) { status('❌ ' + e.message, 'erro'); }
 }
 
-// ===== CATEGORIAS =====
 function abrirModalCategoria(nome) {
     categoriaOriginal = nome || '';
     document.getElementById('modal-categoria-titulo').textContent = nome ? 'Editar Categoria' : 'Nova Categoria';
@@ -341,7 +398,6 @@ async function excluirCategoria(nome) {
     } catch (e) { status('❌ ' + e.message, 'erro'); }
 }
 
-// ===== TAXAS =====
 async function salvarTaxas() {
     status('⏳ Salvando taxas...', 'info');
     try {
@@ -354,12 +410,11 @@ async function salvarTaxas() {
         taxas = novas;
         const r = await ghPut('data/taxas.json', utf8ToBase64(JSON.stringify(taxas, null, 2)), shaTaxas, 'Atualizar taxas');
         shaTaxas = r.content.sha;
-        renderizarTaxas();
+        renderizarTudo();
         status('✅ Taxas salvas!', 'sucesso');
     } catch (e) { status('❌ ' + e.message, 'erro'); }
 }
 
-// ===== CONFIG =====
 async function salvarConfig() {
     status('⏳ Salvando...', 'info');
     try {
@@ -371,16 +426,15 @@ async function salvarConfig() {
     } catch (e) { status('❌ ' + e.message, 'erro'); }
 }
 
-// ===== UI =====
 function mudarAba(nome, btn) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('ativa'));
     btn.classList.add('ativa');
     document.querySelectorAll('.aba-conteudo').forEach(a => a.classList.remove('ativa'));
     document.getElementById('aba-' + nome).classList.add('ativa');
 }
+
 function fecharModal(id) { document.getElementById(id).classList.remove('ativo'); }
 
-// ===== INIT =====
 window.addEventListener('DOMContentLoaded', () => {
     const salvo = localStorage.getItem('gh_token');
     if (salvo) { token = salvo; iniciarPainel(); }
