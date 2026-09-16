@@ -8,41 +8,45 @@
 </head>
 <body>
     <header>
-        <div class="logo-placeholder">
+        <!-- 🖼️ ESPAÇO PARA O LOGO: Quando criar sua imagem, salve como logo.png na pasta public/images/ e ela aparecerá aqui -->
+        <img src="public/images/logo.png" alt="Pastelaria dos Gordelas" class="logo" onerror="this.style.display='none'; document.getElementById('logo-texto').style.display='block'">
+        
+        <div id="logo-texto" style="display:none;">
             <h1>PASTELARIA DOS GORDELAS</h1>
-            <p>O melhor pastel do seu jeito!</p>
+            <p>O melhor pastel, do seu jeito!</p>
         </div>
     </header>
 
     <nav id="categorias">
-        <!-- As abas serão geradas pelo JavaScript -->
+        <!-- Abas geradas pelo JS -->
     </nav>
 
     <main id="cardapio">
-        <!-- Os produtos serão listados aqui pelo JavaScript -->
+        <!-- Produtos gerados pelo JS -->
     </main>
 
+    <!-- Carrinho Fixo -->
     <div id="carrinho-fixo" class="carrinho-fechado">
         <div class="carrinho-header" onclick="toggleCarrinho()">
             <span>🛒 Meu Pedido (<span id="qtd-itens">0</span>)</span>
             <span>Total: R$ <span id="total-carrinho">0,00</span></span>
         </div>
         <div class="carrinho-conteudo" id="itens-carrinho">
-            <!-- Itens do carrinho aparecerão aqui -->
+            <!-- Itens do carrinho -->
         </div>
         <button id="btn-finalizar" onclick="finalizarPedido()">Finalizar Pedido</button>
     </div>
 
-    <!-- Modal para o "Monte o Seu" -->
+    <!-- Modal Monte o Seu -->
     <div id="modal-monter" class="modal-escondido">
         <div class="modal-conteudo">
             <h2>Escolha até 5 Sabores</h2>
-            <p id="contador-sabores">0 / 5</p>
+            <p id="contador-sabores" class="contador">0 / 5</p>
             <div id="lista-opcoes">
-                <!-- Opções serão geradas pelo JavaScript -->
+                <!-- Opções -->
             </div>
-            <button onclick="adicionarMonteAoCarrinho()">Adicionar ao Carrinho</button>
-            <button class="btn-fechar" onclick="fecharModal()">Cancelar</button>
+            <button class="btn-adicionar-modal" onclick="adicionarMonteAoCarrinho()">Adicionar ao Carrinho</button>
+            <button class="btn-fechar-modal" onclick="fecharModal()">Cancelar</button>
         </div>
     </div>
 
