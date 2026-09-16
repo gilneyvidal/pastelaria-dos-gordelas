@@ -1,7 +1,7 @@
 // ===== CONFIGURAÇÕES DO PIX =====
-const PIX_CHAVE = '68741358000109';         // CNPJ sem pontuação
-const PIX_NOME = 'Pamela Curvelo';          // Nome que aparece no app do banco
-const PIX_CIDADE = 'Mogi das Cruzes';       // Cidade do recebedor
+const PIX_CHAVE = '68741358000109';
+const PIX_NOME = 'Pamela Curvelo';
+const PIX_CIDADE = 'Mogi das Cruzes';
 
 // ===== CONFIGURAÇÕES DA LOJA =====
 const NUMERO_WHATSAPP = '5511943184268';
@@ -226,7 +226,6 @@ function abrirCheckout() {
     atualizarTotalCheckout();
     document.getElementById('modal-checkout').classList.add('ativo');
     
-    // Se já estiver em Pix, gera o QR
     const pagamento = document.querySelector('input[name="pagamento"]:checked')?.value;
     if (pagamento === 'Pix') atualizarQRCodePix();
 }
@@ -270,7 +269,6 @@ function atualizarTotalCheckout() {
     elLinhaTaxa.style.display = taxaAtual > 0 ? 'flex' : 'none';
     elTotal.textContent = (subtotal + taxaAtual).toFixed(2).replace('.', ',');
     
-    // Atualiza QR Code se estiver em Pix
     const pagamento = document.querySelector('input[name="pagamento"]:checked')?.value;
     if (pagamento === 'Pix') atualizarQRCodePix();
 }
@@ -327,14 +325,10 @@ function atualizarQRCodePix() {
     if (totalNum <= 0) return;
     
     const totalStr = totalNum.toFixed(2);
-    
-    // Atualiza o valor mostrado
     document.getElementById('pix-valor').textContent = totalStr.replace('.', ',');
     
-    // Gera o payload
     pixPayload = gerarPayloadPix(PIX_CHAVE, PIX_NOME, PIX_CIDADE, totalStr, idPedidoAtual);
     
-    // Renderiza o QR Code
     const container = document.getElementById('qrcode-container');
     
     if (typeof qrcode !== 'function') {
@@ -384,18 +378,21 @@ function copiarPix() {
 // ===== COMPROVANTE =====
 function previewComprovante(input) {
     const file = input.files[0];
+    const btnSalvar = document.getElementById('btn-salvar-comprovante');
+    
     if (!file) {
         comprovanteFile = null;
         document.getElementById('comprovante-preview').style.display = 'none';
+        if (btnSalvar) btnSalvar.style.display = 'none';
         return;
     }
     
-    // Limite de 5MB
     if (file.size > 5 * 1024 * 1024) {
         alert('Imagem muito grande. Escolha uma foto de até 5MB.');
         input.value = '';
         comprovanteFile = null;
         document.getElementById('comprovante-preview').style.display = 'none';
+        if (btnSalvar) btnSalvar.style.display = 'none';
         return;
     }
     
@@ -405,12 +402,34 @@ function previewComprovante(input) {
         const preview = document.getElementById('comprovante-preview');
         preview.src = e.target.result;
         preview.style.display = 'block';
+        if (btnSalvar) btnSalvar.style.display = 'block';
     };
     reader.readAsDataURL(file);
 }
 
+function salvarComprovanteManual() {
+    if (!comprovanteFile) { alert('Nenhum comprovante anexado.'); return; }
+    baixarComprovante(comprovanteFile, idPedidoAtual || 'comprovante');
+    mostrarFeedback('Comprovante salvo na galeria!');
+}
+
+function baixarComprovante(file, idPedido) {
+    try {
+        const url = URL.createObjectURL(file);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `comprovante-${idPedido}.jpg`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 3000);
+    } catch (e) {
+        console.error('Erro ao baixar comprovante:', e);
+    }
+}
+
 // ===== ENVIO =====
-async function enviarPedidoWhatsApp() {
+function enviarPedidoWhatsApp() {
     const nome = document.getElementById('cli-nome').value.trim();
     const telefone = document.getElementById('cli-telefone').value.trim();
     const modalidade = document.querySelector('input[name="modalidade"]:checked').value;
@@ -420,7 +439,12 @@ async function enviarPedidoWhatsApp() {
     if (!nome) { alert('Por favor, preencha seu nome.'); return; }
     if (!telefone) { alert('Por favor, preencha seu telefone.'); return; }
     
-    // Monta o pagamento com sub-opções
+    // Se for Pix, exige comprovante
+    if (pagamentoBase === 'Pix' && !comprovanteFile) {
+        alert('Por favor, anexe o comprovante do Pix antes de enviar.');
+        return;
+    }
+    
     let pagamento = pagamentoBase;
     if (pagamentoBase === 'Cartão') {
         const tipoCartao = document.querySelector('input[name="tipo-cartao"]:checked').value;
@@ -430,7 +454,6 @@ async function enviarPedidoWhatsApp() {
         if (troco) pagamento = `Dinheiro (troco para R$ ${troco})`;
     }
     
-    // Endereço (se entrega)
     let enderecoTexto = '';
     let enderecoParam = '';
     let bairroParam = '';
@@ -488,37 +511,25 @@ async function enviarPedidoWhatsApp() {
     if (obs) mensagem += `*📝 Obs:* ${obs}\n`;
     mensagem += `\n*🖨️ IMPRIMIR PEDIDO:*\n${linkImpressao}\n`;
     
-    if (comprovanteFile && pagamentoBase === 'Pix') {
-        mensagem += `\n_✅ Comprovante anexado nesta conversa._\n`;
-    } else if (pagamentoBase === 'Pix') {
-        mensagem += `\n⚠️ _Envie a foto do comprovante do Pix após esta mensagem._\n`;
+    if (pagamentoBase === 'Pix' && comprovanteFile) {
+        mensagem += `\n📎 *COMPROVANTE DO PIX será enviado em seguida nesta conversa.*`;
     }
     
-    mensagem += `\n_Obrigado pela preferência!_ ❤️`;
+    mensagem += `\n\n_Obrigado pela preferência!_ ❤️`;
     
-    // ===== TENTA USAR WEB SHARE API (compartilha imagem + texto juntos) =====
-    if (comprovanteFile && navigator.canShare && navigator.canShare({ files: [comprovanteFile] })) {
-        try {
-            await navigator.share({
-                files: [comprovanteFile],
-                text: mensagem,
-                title: `Pedido ${idPedidoAtual} - Pastelaria dos Gordelas`
-            });
-            // Sucesso! Limpa carrinho
-            carrinho = [];
-            comprovanteFile = null;
-            atualizarCarrinho();
-            fecharModal('modal-checkout');
-            return;
-        } catch (e) {
-            if (e.name === 'AbortError') return; // Usuário cancelou
-            console.warn('Web Share falhou, usando fallback:', e);
-        }
+    // 1) Baixa o comprovante automaticamente (se houver)
+    if (comprovanteFile) {
+        baixarComprovante(comprovanteFile, idPedidoAtual);
     }
     
-    // ===== FALLBACK: wa.me =====
+    // 2) Abre o WhatsApp direto na conversa da pastelaria
     const url = `https://wa.me/${NUMERO_WHATSAPP}?text=${encodeURIComponent(mensagem)}`;
     window.open(url, '_blank');
+    
+    // 3) Feedback e limpeza
+    if (comprovanteFile) {
+        mostrarFeedback('Comprovante salvo na galeria! Anexe no WhatsApp 📎');
+    }
     
     carrinho = [];
     comprovanteFile = null;
@@ -538,7 +549,7 @@ function mostrarFeedback(msg) {
         max-width: 90vw; text-align: center;
     `;
     document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 2000);
+    setTimeout(() => toast.remove(), 2500);
 }
 
 // ===== INICIALIZAÇÃO =====
