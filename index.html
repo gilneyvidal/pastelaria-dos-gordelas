@@ -28,6 +28,36 @@
 
     <main id="cardapio"></main>
 
+    <!-- RODAPÉ PERSONALIZADO -->
+    <footer class="rodape-personalizado">
+        <div class="rodape-conteudo">
+            <img 
+                src="public/images/logo-vidal.png" 
+                alt="Vidal Design Solutions" 
+                class="logo-rodape" 
+                onerror="
+                    if(!this.dataset.tentouJpg){ this.dataset.tentouJpg='1'; this.src='public/images/logo-vidal.jpg'; }
+                    else if(!this.dataset.tentouWebp){ this.dataset.tentouWebp='1'; this.src='public/images/logo-vidal.webp'; }
+                    else { this.style.display='none'; }
+                ">
+            
+            <div class="rodape-info">
+                <p class="rodape-empresa">Desenvolvido por <strong>Vidal Design Solutions</strong></p>
+                <p class="rodape-linha">
+                    <span class="rodape-icone">📞</span>
+                    <a href="https://wa.me/5511968649673" target="_blank" rel="noopener">(11) 96864-9673</a>
+                </p>
+                <p class="rodape-linha">
+                    <span class="rodape-icone">📍</span>
+                    <span>Mogi das Cruzes - SP</span>
+                </p>
+                <p class="rodape-copyright">
+                    © <span id="ano-atual"></span> Vidal Design Solutions — Todos os direitos reservados
+                </p>
+            </div>
+        </div>
+    </footer>
+
     <div id="carrinho-fixo" class="carrinho-fechado">
         <div class="carrinho-header" onclick="toggleCarrinho()">
             <span>🛒 Meu Pedido (<span id="qtd-itens">0</span>)</span>
@@ -96,7 +126,6 @@
                 </div>
             </div>
 
-            <!-- Sub-opções do PIX -->
             <div id="sub-pagamento-pix" class="sub-opcoes">
                 <span class="sub-label">📱 Escaneie o QR Code abaixo com o app do seu banco:</span>
                 <div id="qrcode-container" class="qrcode-container"></div>
@@ -116,7 +145,6 @@
                 </div>
             </div>
 
-            <!-- Sub-opções do Cartão -->
             <div id="sub-pagamento-cartao" class="sub-opcoes" style="display:none;">
                 <span class="sub-label">Tipo de Cartão:</span>
                 <div class="opcoes-radio">
@@ -125,7 +153,6 @@
                 </div>
             </div>
 
-            <!-- Sub-opção do Dinheiro (troco) -->
             <div id="sub-pagamento-dinheiro" class="sub-opcoes" style="display:none;">
                 <label class="campo">
                     <span>Precisa de troco? Para quanto?</span>
@@ -150,5 +177,9 @@
     </div>
 
     <script src="script.js"></script>
+    <script>
+        // Atualiza o ano do copyright automaticamente
+        document.getElementById('ano-atual').textContent = new Date().getFullYear();
+    </script>
 </body>
 </html>
