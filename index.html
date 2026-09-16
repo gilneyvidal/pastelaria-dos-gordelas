@@ -8,22 +8,16 @@
 </head>
 <body>
     <header>
-        <!-- 🖼️ ESPAÇO PARA O LOGO: Quando criar sua imagem, salve como logo.png na pasta public/images/ e ela aparecerá aqui -->
         <img src="public/images/logo.png" alt="Pastelaria dos Gordelas" class="logo" onerror="this.style.display='none'; document.getElementById('logo-texto').style.display='block'">
-        
         <div id="logo-texto" style="display:none;">
             <h1>PASTELARIA DOS GORDELAS</h1>
             <p>O melhor pastel, do seu jeito!</p>
         </div>
     </header>
 
-    <nav id="categorias">
-        <!-- Abas geradas pelo JS -->
-    </nav>
+    <nav id="categorias"></nav>
 
-    <main id="cardapio">
-        <!-- Produtos gerados pelo JS -->
-    </main>
+    <main id="cardapio"></main>
 
     <!-- Carrinho Fixo -->
     <div id="carrinho-fixo" class="carrinho-fechado">
@@ -31,10 +25,8 @@
             <span>🛒 Meu Pedido (<span id="qtd-itens">0</span>)</span>
             <span>Total: R$ <span id="total-carrinho">0,00</span></span>
         </div>
-        <div class="carrinho-conteudo" id="itens-carrinho">
-            <!-- Itens do carrinho -->
-        </div>
-        <button id="btn-finalizar" onclick="finalizarPedido()">Finalizar Pedido</button>
+        <div class="carrinho-conteudo" id="itens-carrinho"></div>
+        <button id="btn-finalizar" onclick="abrirCheckout()">Finalizar Pedido</button>
     </div>
 
     <!-- Modal Monte o Seu -->
@@ -42,11 +34,75 @@
         <div class="modal-conteudo">
             <h2>Escolha até 5 Sabores</h2>
             <p id="contador-sabores" class="contador">0 / 5</p>
-            <div id="lista-opcoes">
-                <!-- Opções -->
+            <div id="lista-opcoes"></div>
+            <button class="btn-primario" onclick="adicionarMonteAoCarrinho()">Adicionar ao Carrinho</button>
+            <button class="btn-secundario" onclick="fecharModal('modal-monter')">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- Modal de Checkout -->
+    <div id="modal-checkout" class="modal-escondido">
+        <div class="modal-conteudo">
+            <h2>Finalizar Pedido</h2>
+            
+            <label class="campo">
+                <span>Seu Nome *</span>
+                <input type="text" id="cli-nome" placeholder="Digite seu nome" required>
+            </label>
+
+            <label class="campo">
+                <span>Telefone/WhatsApp *</span>
+                <input type="tel" id="cli-telefone" placeholder="(11) 99999-9999" required>
+            </label>
+
+            <div class="campo">
+                <span>Como deseja receber? *</span>
+                <div class="opcoes-radio">
+                    <label><input type="radio" name="modalidade" value="entrega" checked onchange="toggleEndereco()"> 🛵 Entrega</label>
+                    <label><input type="radio" name="modalidade" value="retirada" onchange="toggleEndereco()"> 🏃 Retirada</label>
+                    <label><input type="radio" name="modalidade" value="local" onchange="toggleEndereco()"> 🍽️ Consumo no Local</label>
+                </div>
             </div>
-            <button class="btn-adicionar-modal" onclick="adicionarMonteAoCarrinho()">Adicionar ao Carrinho</button>
-            <button class="btn-fechar-modal" onclick="fecharModal()">Cancelar</button>
+
+            <div id="campos-endereco">
+                <label class="campo">
+                    <span>Endereço (Rua e Número) *</span>
+                    <input type="text" id="cli-endereco" placeholder="Rua Exemplo, 123">
+                </label>
+                <label class="campo">
+                    <span>Bairro *</span>
+                    <select id="cli-bairro" onchange="calcularTaxa()">
+                        <option value="">Selecione o bairro</option>
+                    </select>
+                </label>
+                <label class="campo">
+                    <span>Complemento</span>
+                    <input type="text" id="cli-complemento" placeholder="Apto, bloco, referência...">
+                </label>
+            </div>
+
+            <div class="campo">
+                <span>Forma de Pagamento *</span>
+                <div class="opcoes-radio">
+                    <label><input type="radio" name="pagamento" value="Pix" checked> 💠 Pix</label>
+                    <label><input type="radio" name="pagamento" value="Cartão"> 💳 Cartão</label>
+                    <label><input type="radio" name="pagamento" value="Dinheiro"> 💵 Dinheiro</label>
+                </div>
+            </div>
+
+            <label class="campo">
+                <span>Observações</span>
+                <textarea id="cli-obs" placeholder="Alguma observação sobre o pedido?"></textarea>
+            </label>
+
+            <div class="resumo-checkout">
+                <div>Subtotal: <strong>R$ <span id="resumo-subtotal">0,00</span></strong></div>
+                <div id="linha-taxa" style="display:none;">Taxa de Entrega: <strong>R$ <span id="resumo-taxa">0,00</span></strong></div>
+                <div class="total-final">Total: <strong>R$ <span id="resumo-total">0,00</span></strong></div>
+            </div>
+
+            <button class="btn-primario" onclick="enviarPedidoWhatsApp()">Enviar Pedido no WhatsApp</button>
+            <button class="btn-secundario" onclick="fecharModal('modal-checkout')">Voltar</button>
         </div>
     </div>
 
