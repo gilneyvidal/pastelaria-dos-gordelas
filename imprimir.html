@@ -6,32 +6,119 @@
     <title>Pedido - Pastelaria dos Gordelas</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Courier New', monospace; }
-        body { background: #f0f0f0; padding: 20px; }
+        
+        body { background: #f0f0f0; padding: 15px; }
+        
+        .seletor-papel {
+            max-width: 380px; margin: 0 auto 15px; display: flex; gap: 8px; padding: 8px;
+            background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .seletor-papel button {
+            flex: 1; padding: 12px; border: 2px solid #ddd; background: #fff;
+            border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px;
+            font-family: 'Segoe UI', sans-serif; transition: all 0.2s;
+        }
+        .seletor-papel button.ativo {
+            background: #FFC107; border-color: #FFC107; color: #000;
+        }
+        
         .cupom {
             max-width: 380px; margin: 0 auto; background: #fff; padding: 20px;
             border: 1px dashed #000; font-size: 13px; line-height: 1.5; color: #000;
         }
-        h1 { text-align: center; font-size: 16px; margin-bottom: 4px; }
+        h1 { text-align: center; font-size: 16px; margin-bottom: 4px; letter-spacing: 1px; }
         .subtitulo { text-align: center; font-size: 11px; margin-bottom: 12px; }
         .linha { border-top: 1px dashed #000; margin: 8px 0; }
-        .dupla { display: flex; justify-content: space-between; margin: 3px 0; }
-        .total { font-weight: bold; font-size: 15px; }
+        .linha-dupla { border-top: 1px dashed #000; margin: 8px 0; }
+        .dupla { display: flex; justify-content: space-between; margin: 3px 0; gap: 10px; }
+        .dupla span:first-child { flex: 1; }
+        .dupla span:last-child { text-align: right; white-space: nowrap; }
+        .total { font-weight: bold; font-size: 15px; border-top: 2px solid #000; padding-top: 5px; margin-top: 5px; }
         .itens { margin: 8px 0; }
         .itens .dupla { font-size: 12px; }
-        .obs { font-style: italic; font-size: 11px; margin-top: 8px; word-wrap: break-word; }
+        .obs { font-style: italic; font-size: 11px; margin-top: 8px; word-wrap: break-word; padding: 5px; background: #f5f5f5; }
         .rodape { text-align: center; font-size: 10px; margin-top: 12px; }
-        .btn-print { display: block; width: 100%; max-width: 380px; margin: 15px auto; padding: 12px;
-            background: #FFC107; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .cabecalho { text-align: center; margin-bottom: 10px; font-weight: bold; }
+        
+        .btn-print {
+            display: block; width: 100%; max-width: 380px; margin: 15px auto 5px;
+            padding: 14px; background: #FFC107; border: none; border-radius: 8px;
+            font-weight: bold; cursor: pointer; font-size: 15px; color: #000;
+        }
+        .btn-voltar {
+            display: block; width: 100%; max-width: 380px; margin: 5px auto;
+            padding: 12px; background: #fff; border: 2px solid #ddd; border-radius: 8px;
+            font-weight: bold; cursor: pointer; font-size: 13px; color: #666;
+        }
+
+        /* ===== MODO TÉRMICA 58mm ===== */
+        body.modo-termica { background: #333; padding: 10px; }
+        body.modo-termica .cupom {
+            width: 58mm;
+            max-width: 58mm;
+            padding: 2mm 3mm;
+            font-size: 11px;
+            line-height: 1.35;
+            border: 1px dashed #666;
+        }
+        body.modo-termica h1 { font-size: 13px; }
+        body.modo-termica .subtitulo { font-size: 9px; margin-bottom: 6px; }
+        body.modo-termica .dupla { font-size: 11px; margin: 2px 0; }
+        body.modo-termica .itens .dupla { font-size: 11px; }
+        body.modo-termica .total { font-size: 13px; }
+        body.modo-termica .linha { margin: 5px 0; }
+        body.modo-termica .obs { font-size: 10px; padding: 3px; }
+        body.modo-termica .rodape { font-size: 9px; margin-top: 8px; }
+        body.modo-termica .btn-print, body.modo-termica .btn-voltar {
+            max-width: 58mm;
+            font-size: 12px;
+            padding: 10px;
+        }
+
+        /* ===== IMPRESSÃO A4 ===== */
         @media print {
             body { background: #fff; padding: 0; }
-            .btn-print { display: none; }
-            .cupom { border: none; max-width: 100%; padding: 0; }
+            .seletor-papel, .btn-print, .btn-voltar { display: none !important; }
+            .cupom {
+                max-width: 100%; border: none; padding: 0;
+                box-shadow: none;
+            }
+            @page { margin: 10mm; }
+        }
+
+        /* ===== IMPRESSÃO TÉRMICA 58mm ===== */
+        body.modo-termica.imprimindo {
+            background: #fff;
+        }
+        @media print {
+            body.modo-termica {
+                background: #fff !important;
+                padding: 0 !important;
+            }
+            body.modo-termica .cupom {
+                width: 58mm;
+                max-width: 58mm;
+                padding: 1mm 2mm;
+                border: none;
+                margin: 0;
+            }
+            body.modo-termica .seletor-papel,
+            body.modo-termica .btn-print,
+            body.modo-termica .btn-voltar { display: none !important; }
+            @page { size: 58mm auto; margin: 0; }
         }
     </style>
 </head>
 <body>
+    <div class="seletor-papel">
+        <button id="btn-a4" onclick="mudarPapel('a4')">🖨️ Folha A4</button>
+        <button id="btn-termica" onclick="mudarPapel('termica')">🧾 Térmica 58mm</button>
+    </div>
+
     <div class="cupom" id="cupom"></div>
-    <button class="btn-print" onclick="window.print()">🖨️ Imprimir Agora</button>
+    
+    <button class="btn-print" onclick="imprimir()">🖨️ Imprimir Agora</button>
+    <button class="btn-voltar" onclick="window.close()">Fechar</button>
 
     <script>
         const params = new URLSearchParams(window.location.search);
@@ -48,13 +135,18 @@
         const total = params.get('tot') || '0,00';
         const pagamento = params.get('pag') || '-';
         const obs = params.get('obs') || '';
+        const papelParam = params.get('papel') || localStorage.getItem('papel-pref') || 'a4';
+        
         const dataHora = new Date().toLocaleString('pt-BR');
+
+        // Remove emojis para impressão térmica (opcional - térmicas antigas não renderizam)
+        const limparEmoji = (txt) => txt.replace(/[🟡🛵🏃🍽️📞📦👤🛒💳💰📝🖨️]/g, '').trim();
 
         let enderecoHtml = '';
         if (modalidade.includes('Entrega') && endereco) {
             enderecoHtml = `<div class="linha"></div>
-                <div><strong>Endereço:</strong> ${endereco}</div>
-                <div><strong>Bairro:</strong> ${bairro}</div>`;
+                <div class="dupla"><span>Endereço:</span><span>${endereco}</span></div>
+                <div class="dupla"><span>Bairro:</span><span>${bairro}</span></div>`;
         }
 
         let itensHtml = itens.map(item => {
@@ -72,33 +164,52 @@
         let obsHtml = obs ? `<div class="obs">Obs: ${obs}</div>` : '';
 
         document.getElementById('cupom').innerHTML = `
-            <h1>🟡 PASTELARIA DOS GORDELAS</h1>
-            <div class="subtitulo">Mogi das Cruzes - SP</div>
+            <div class="cabecalho">
+                <h1>PASTELARIA DOS GORDELAS</h1>
+                <div class="subtitulo">Mogi das Cruzes - SP</div>
+            </div>
             <div class="linha"></div>
             <div class="dupla"><span>Pedido:</span><strong>${id}</strong></div>
             <div class="dupla"><span>Data:</span><span>${dataHora}</span></div>
             <div class="linha"></div>
-            <div><strong>Cliente:</strong> ${nome}</div>
-            <div><strong>Telefone:</strong> ${telefone}</div>
-            <div><strong>Modalidade:</strong> ${modalidade}</div>
+            <div class="dupla"><span>Cliente:</span><span>${nome}</span></div>
+            <div class="dupla"><span>Telefone:</span><span>${telefone}</span></div>
+            <div class="dupla"><span>Modalidade:</span><span>${modalidade.replace(/[🛵🏃🍽️]/g,'').trim()}</span></div>
             ${enderecoHtml}
             <div class="linha"></div>
-            <div><strong>ITENS:</strong></div>
+            <div style="font-weight:bold; margin-bottom:4px;">ITENS:</div>
             <div class="itens">${itensHtml}</div>
             <div class="linha"></div>
             <div class="dupla"><span>Subtotal</span><span>R$ ${subtotal}</span></div>
             ${taxaHtml}
             <div class="dupla total"><span>TOTAL</span><span>R$ ${total}</span></div>
             <div class="linha"></div>
-            <div><strong>Pagamento:</strong> ${pagamento}</div>
+            <div class="dupla"><span>Pagamento:</span><span>${pagamento}</span></div>
             ${obsHtml}
             <div class="rodape">
-                Obrigado pela preferência! ❤️<br>
+                Obrigado pela preferência!<br>
                 Frito na hora, sempre crocante!
             </div>
         `;
 
-        setTimeout(() => window.print(), 600);
+        function mudarPapel(tipo) {
+            localStorage.setItem('papel-pref', tipo);
+            document.body.classList.toggle('modo-termica', tipo === 'termica');
+            document.getElementById('btn-a4').classList.toggle('ativo', tipo === 'a4');
+            document.getElementById('btn-termica').classList.toggle('ativo', tipo === 'termica');
+        }
+
+        function imprimir() {
+            window.print();
+        }
+
+        // Aplica papel preferido
+        mudarPapel(papelParam);
+
+        // Auto-abre a impressão após 600ms se não for térmica (térmica o lead escolhe)
+        setTimeout(() => {
+            if (papelParam === 'a4') window.print();
+        }, 700);
     </script>
 </body>
 </html>
