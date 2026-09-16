@@ -8,7 +8,7 @@ async function carregarProdutos() {
         const resposta = await fetch('./data/produtos.json');
         produtos = await resposta.json();
         renderizarCategorias();
-        renderizarProdutos('tradicionais'); // Aba inicial
+        renderizarProdutos('tradicionais');
     } catch (erro) {
         console.error('Erro ao carregar produtos:', erro);
         document.getElementById('cardapio').innerHTML = '<p style="text-align:center; padding:20px;">Erro ao carregar o cardápio. Recarregue a página.</p>';
@@ -23,7 +23,6 @@ function renderizarCategorias() {
     categorias.forEach(cat => {
         const btn = document.createElement('button');
         btn.className = 'aba';
-        // Deixa a primeira letra maiúscula e troca '-' por espaço
         btn.textContent = cat.charAt(0).toUpperCase() + cat.slice(1).replace('-', ' ');
         btn.onclick = () => {
             document.querySelectorAll('.aba').forEach(b => b.classList.remove('ativa'));
@@ -45,12 +44,9 @@ function renderizarProdutos(categoria) {
         const card = document.createElement('div');
         card.className = 'produto-card' + (p.esgotado ? ' esgotado' : '');
         
-        // 👇 CORREÇÃO DO BUG AQUI: Removida a aspa extra e ajustada a lógica
         const isMonte = p.id === 'monte-o-seu';
         const acao = isMonte ? `abrirModalMonte()` : `adicionarAoCarrinho('${p.id}')`;
         const textoBotao = p.esgotado ? 'Esgotado' : (isMonte ? 'Montar' : 'Adicionar');
-
-        // Fallback para imagem quebrada
         const imgSrc = p.foto ? `public/images/${p.foto}` : 'https://placehold.co/80x80/FFD700/000000?text=Pastel';
 
         card.innerHTML = `
@@ -82,10 +78,9 @@ function adicionarAoCarrinho(id) {
         carrinho.push({ ...produto, quantidade: 1 });
     }
     atualizarCarrinho();
-    // Feedback visual rápido (pode ser um toast depois)
-    // alert(`${produto.nome} adicionado!`); 
 }
 
+// 5. Atualizar a interface do carrinho
 function atualizarCarrinho() {
     const qtdTotal = carrinho.reduce((acc, i) => acc + i.quantidade, 0);
     const total = carrinho.reduce((acc, i) => acc + (i.preco * i.quantidade), 0);
@@ -99,19 +94,47 @@ function atualizarCarrinho() {
         return;
     }
 
-    container.innerHTML = carrinho.map(item => `
-        <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #ccc; font-size:14px;">
-            <span>${item.quantidade}x ${item.nome}</span>
-            <span style="font-weight:bold;">R$ ${(item.preco * item.quantidade).toFixed(2).replace('.', ',')}</span>
+    container.innerHTML = carrinho.map((item, index) => `
+        <div class="item-carrinho">
+            <div class="item-info">
+                <span class="item-nome">${item.nome}</span>
+                <span class="item-preco">R$ ${(item.preco * item.quantidade).toFixed(2).replace('.', ',')}</span>
+            </div>
+            <div class="item-controles">
+                <button class="btn-qtd" onclick="diminuirQuantidade(${index})">−</button>
+                <span class="item-qtd">${item.quantidade}</span>
+                <button class="btn-qtd" onclick="aumentarQuantidade(${index})">+</button>
+                <button class="btn-remover" onclick="removerItem(${index})">🗑️</button>
+            </div>
         </div>
     `).join('');
+}
+
+// 6. Funções de controle de quantidade
+function aumentarQuantidade(index) {
+    carrinho[index].quantidade++;
+    atualizarCarrinho();
+}
+
+function diminuirQuantidade(index) {
+    if (carrinho[index].quantidade > 1) {
+        carrinho[index].quantidade--;
+    } else {
+        removerItem(index);
+    }
+    atualizarCarrinho();
+}
+
+function removerItem(index) {
+    carrinho.splice(index, 1);
+    atualizarCarrinho();
 }
 
 function toggleCarrinho() {
     document.getElementById('carrinho-fixo').classList.toggle('carrinho-fechado');
 }
 
-// 5. Lógica do "Monte o Seu"
+// 7. Lógica do "Monte o Seu"
 function abrirModalMonte() {
     selecionados = [];
     const produto = produtos.find(p => p.id === 'monte-o-seu');
@@ -143,7 +166,6 @@ function atualizarSelecao(checkbox) {
     document.getElementById('contador-sabores').textContent = `${selecionados.length} / 5`;
 }
 
-// 👇 CORREÇÃO DO BUG: Nome da função corrigido (Carrinho com 2 R's)
 function adicionarMonteAoCarrinho() {
     if (selecionados.length === 0) {
         alert('Escolha pelo menos 1 sabor!');
@@ -156,7 +178,6 @@ function adicionarMonteAoCarrinho() {
         quantidade: 1
     };
     
-    // Verifica se já tem um "Monte o Seu" com os mesmos ingredientes
     const itemExistente = carrinho.find(i => i.nome === item.nome);
     if (itemExistente) {
         itemExistente.quantidade++;
@@ -172,7 +193,7 @@ function fecharModal() {
     document.getElementById('modal-monter').classList.remove('ativo');
 }
 
-// 6. Finalizar Pedido (Checkout WhatsApp - Versão Simples Provisória)
+// 8. Finalizar Pedido
 function finalizarPedido() {
     if (carrinho.length === 0) {
         alert('Seu carrinho está vazio!');
@@ -186,8 +207,7 @@ function finalizarPedido() {
                      `*Itens:*\n${itensTexto}\n\n` +
                      `*Total:* R$ ${total}`;
     
-    // ⚠️ COLOQUE O NÚMERO DO SEU LEAD AQUI (DDI+DDD+Número)
-    const telefone = '5511999999999'; 
+    const telefone = '5511999999999'; // ⚠️ COLOQUE O NÚMERO DO SEU LEAD AQUI
     const url = `https://wa.me/${telefone}?text=${encodeURIComponent(mensagem)}`;
     window.open(url, '_blank');
 }
