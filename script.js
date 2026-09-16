@@ -1,7 +1,18 @@
+// ===== CONFIGURAÇÕES DO PIX =====
+const PIX_CHAVE = '68741358000109';         // CNPJ sem pontuação
+const PIX_NOME = 'Pamela Curvelo';          // Nome que aparece no app do banco
+const PIX_CIDADE = 'Mogi das Cruzes';       // Cidade do recebedor
+
+// ===== CONFIGURAÇÕES DA LOJA =====
+const NUMERO_WHATSAPP = '5511943184268';
+
 let produtos = [];
 let carrinho = [];
 let selecionados = [];
 let taxaAtual = 0;
+let idPedidoAtual = '';
+let comprovanteFile = null;
+let pixPayload = '';
 
 const TAXAS_PADRAO = {
   "PARQUE OLÍMPICO": 4.00,
@@ -20,8 +31,8 @@ const TAXAS_PADRAO = {
 };
 
 let taxasEntrega = { ...TAXAS_PADRAO };
-const NUMERO_WHATSAPP = '5511943184268';
 
+// ===== INICIALIZAÇÃO =====
 async function iniciar() {
     try {
         const resTaxas = await fetch('./data/taxas.json');
@@ -48,7 +59,6 @@ async function iniciar() {
             <div style="text-align:center; padding:40px 20px;">
                 <p style="color:#E53935; font-weight:bold; margin-bottom:10px;">Erro ao carregar o cardápio 😢</p>
                 <p style="font-size:12px; color:#B0B0B0;">Verifique se o arquivo <strong>data/produtos.json</strong> existe.</p>
-                <p style="font-size:11px; color:#666; margin-top:10px;">Detalhe: ${erro.message}</p>
             </div>
         `;
     }
@@ -65,6 +75,7 @@ function popularBairros() {
     });
 }
 
+// ===== RENDERIZAÇÃO =====
 function renderizarCategorias() {
     const categorias = [...new Set(produtos.map(p => p.categoria))];
     const nav = document.getElementById('categorias');
@@ -118,6 +129,7 @@ function renderizarProdutos(categoria) {
     });
 }
 
+// ===== CARRINHO =====
 function adicionarAoCarrinho(id) {
     const produto = produtos.find(p => p.id === id);
     if (!produto || produto.esgotado) return;
@@ -137,7 +149,7 @@ function atualizarCarrinho() {
     
     const elSub = document.getElementById('resumo-subtotal');
     if (elSub) elSub.textContent = subtotal.toFixed(2).replace('.', ',');
-    if (typeof atualizarTotalCheckout === 'function') atualizarTotalCheckout();
+    atualizarTotalCheckout();
 
     const container = document.getElementById('itens-carrinho');
     if (carrinho.length === 0) {
@@ -170,6 +182,7 @@ function diminuirQuantidade(i) {
 function removerItem(i) { carrinho.splice(i, 1); atualizarCarrinho(); }
 function toggleCarrinho() { document.getElementById('carrinho-fixo').classList.toggle('carrinho-fechado'); }
 
+// ===== MONTE O SEU =====
 function abrirModalMonte() {
     selecionados = [];
     const produto = produtos.find(p => p.id === 'monte-o-seu');
@@ -205,11 +218,17 @@ function adicionarMonteAoCarrinho() {
 
 function fecharModal(id) { document.getElementById(id).classList.remove('ativo'); }
 
+// ===== CHECKOUT =====
 function abrirCheckout() {
     if (carrinho.length === 0) { alert('Seu carrinho está vazio!'); return; }
+    idPedidoAtual = 'GORDELA-' + Math.random().toString(36).substring(2, 8).toUpperCase();
     toggleCarrinho();
     atualizarTotalCheckout();
     document.getElementById('modal-checkout').classList.add('ativo');
+    
+    // Se já estiver em Pix, gera o QR
+    const pagamento = document.querySelector('input[name="pagamento"]:checked')?.value;
+    if (pagamento === 'Pix') atualizarQRCodePix();
 }
 
 function toggleEndereco() {
@@ -221,8 +240,11 @@ function toggleEndereco() {
 
 function toggleSubPagamento() {
     const pagamento = document.querySelector('input[name="pagamento"]:checked').value;
+    document.getElementById('sub-pagamento-pix').style.display = pagamento === 'Pix' ? 'block' : 'none';
     document.getElementById('sub-pagamento-cartao').style.display = pagamento === 'Cartão' ? 'block' : 'none';
     document.getElementById('sub-pagamento-dinheiro').style.display = pagamento === 'Dinheiro' ? 'block' : 'none';
+    
+    if (pagamento === 'Pix') atualizarQRCodePix();
 }
 
 function calcularTaxa() {
@@ -247,9 +269,148 @@ function atualizarTotalCheckout() {
     elTaxa.textContent = taxaAtual.toFixed(2).replace('.', ',');
     elLinhaTaxa.style.display = taxaAtual > 0 ? 'flex' : 'none';
     elTotal.textContent = (subtotal + taxaAtual).toFixed(2).replace('.', ',');
+    
+    // Atualiza QR Code se estiver em Pix
+    const pagamento = document.querySelector('input[name="pagamento"]:checked')?.value;
+    if (pagamento === 'Pix') atualizarQRCodePix();
 }
 
-function enviarPedidoWhatsApp() {
+// ===== PIX (BR CODE) =====
+function sanitizarPix(str, max) {
+    return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9 ]/g, '')
+        .substring(0, max).toUpperCase();
+}
+
+function crc16(str) {
+    let crc = 0xFFFF;
+    for (let i = 0; i < str.length; i++) {
+        crc ^= str.charCodeAt(i) << 8;
+        for (let j = 0; j < 8; j++) {
+            if ((crc & 0x8000) !== 0) crc = ((crc << 1) ^ 0x1021) & 0xFFFF;
+            else crc = (crc << 1) & 0xFFFF;
+        }
+    }
+    return crc.toString(16).toUpperCase().padStart(4, '0');
+}
+
+function gerarPayloadPix(chave, nome, cidade, valor, txid) {
+    const nomeSan = sanitizarPix(nome, 25);
+    const cidadeSan = sanitizarPix(cidade, 15);
+    const txidSan = (txid || '***').replace(/[^a-zA-Z0-9]/g, '').substring(0, 25) || '***';
+    const valorStr = parseFloat(valor).toFixed(2);
+    
+    const f = (id, val) => id + String(val.length).padStart(2, '0') + val;
+    
+    const gui = f('00', 'br.gov.bcb.pix');
+    const chaveF = f('01', chave);
+    const merchantAccount = f('26', gui + chaveF);
+    
+    const payloadFormat = f('00', '01');
+    const merchantCategory = f('52', '0000');
+    const currency = f('53', '986');
+    const amount = f('54', valorStr);
+    const country = f('58', 'BR');
+    const merchantName = f('59', nomeSan);
+    const merchantCity = f('60', cidadeSan);
+    const txidField = f('05', txidSan);
+    const additionalData = f('62', txidField);
+    
+    let payload = payloadFormat + merchantAccount + merchantCategory + currency + amount + country + merchantName + merchantCity + additionalData + '6304';
+    const crc = crc16(payload);
+    
+    return payload + crc;
+}
+
+function atualizarQRCodePix() {
+    const totalNum = carrinho.reduce((acc, i) => acc + (i.preco * i.quantidade), 0) + taxaAtual;
+    if (totalNum <= 0) return;
+    
+    const totalStr = totalNum.toFixed(2);
+    
+    // Atualiza o valor mostrado
+    document.getElementById('pix-valor').textContent = totalStr.replace('.', ',');
+    
+    // Gera o payload
+    pixPayload = gerarPayloadPix(PIX_CHAVE, PIX_NOME, PIX_CIDADE, totalStr, idPedidoAtual);
+    
+    // Renderiza o QR Code
+    const container = document.getElementById('qrcode-container');
+    
+    if (typeof qrcode !== 'function') {
+        container.innerHTML = '<p style="color:#E53935; font-size:12px; padding:10px; text-align:center;">Carregando gerador de QR Code... Recarregue se demorar.</p>';
+        return;
+    }
+    
+    try {
+        const qr = qrcode(0, 'M');
+        qr.addData(pixPayload);
+        qr.make();
+        container.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 4, scalable: true });
+    } catch (e) {
+        console.error('Erro ao gerar QR Code:', e);
+        container.innerHTML = '<p style="color:#E53935; font-size:12px; padding:10px; text-align:center;">Erro ao gerar QR Code. Use o botão Copiar Pix abaixo.</p>';
+    }
+}
+
+function copiarPix() {
+    if (!pixPayload) { alert('QR Code ainda não foi gerado.'); return; }
+    
+    const fazerCopia = () => {
+        const ta = document.createElement('textarea');
+        ta.value = pixPayload;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+            document.execCommand('copy');
+            mostrarFeedback('Código Pix copiado!');
+        } catch (e) {
+            alert('Não foi possível copiar. Selecione o texto manualmente.');
+        }
+        document.body.removeChild(ta);
+    };
+    
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(pixPayload).then(() => {
+            mostrarFeedback('Código Pix copiado!');
+        }).catch(fazerCopia);
+    } else {
+        fazerCopia();
+    }
+}
+
+// ===== COMPROVANTE =====
+function previewComprovante(input) {
+    const file = input.files[0];
+    if (!file) {
+        comprovanteFile = null;
+        document.getElementById('comprovante-preview').style.display = 'none';
+        return;
+    }
+    
+    // Limite de 5MB
+    if (file.size > 5 * 1024 * 1024) {
+        alert('Imagem muito grande. Escolha uma foto de até 5MB.');
+        input.value = '';
+        comprovanteFile = null;
+        document.getElementById('comprovante-preview').style.display = 'none';
+        return;
+    }
+    
+    comprovanteFile = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const preview = document.getElementById('comprovante-preview');
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+}
+
+// ===== ENVIO =====
+async function enviarPedidoWhatsApp() {
     const nome = document.getElementById('cli-nome').value.trim();
     const telefone = document.getElementById('cli-telefone').value.trim();
     const modalidade = document.querySelector('input[name="modalidade"]:checked').value;
@@ -259,7 +420,7 @@ function enviarPedidoWhatsApp() {
     if (!nome) { alert('Por favor, preencha seu nome.'); return; }
     if (!telefone) { alert('Por favor, preencha seu telefone.'); return; }
     
-    // ===== MONTA O TEXTO DO PAGAMENTO COM SUB-OPÇÕES =====
+    // Monta o pagamento com sub-opções
     let pagamento = pagamentoBase;
     if (pagamentoBase === 'Cartão') {
         const tipoCartao = document.querySelector('input[name="tipo-cartao"]:checked').value;
@@ -269,6 +430,7 @@ function enviarPedidoWhatsApp() {
         if (troco) pagamento = `Dinheiro (troco para R$ ${troco})`;
     }
     
+    // Endereço (se entrega)
     let enderecoTexto = '';
     let enderecoParam = '';
     let bairroParam = '';
@@ -282,12 +444,15 @@ function enviarPedidoWhatsApp() {
         bairroParam = bairro;
     }
     
-    const idPedido = 'GORDELA-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+    if (!idPedidoAtual) {
+        idPedidoAtual = 'GORDELA-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+    }
     
     const itensTexto = carrinho.map(i => `• ${i.quantidade}x ${i.nome} — R$ ${(i.preco * i.quantidade).toFixed(2).replace('.', ',')}`).join('\n');
     const subtotalNum = carrinho.reduce((acc, i) => acc + (i.preco * i.quantidade), 0);
     const subtotal = subtotalNum.toFixed(2).replace('.', ',');
-    const total = (subtotalNum + taxaAtual).toFixed(2).replace('.', ',');
+    const totalNum = subtotalNum + taxaAtual;
+    const total = totalNum.toFixed(2).replace('.', ',');
     
     const modalidadeTexto = modalidade === 'entrega' ? '🛵 Entrega' : (modalidade === 'retirada' ? '🏃 Retirada' : '🍽️ Consumo no Local');
     
@@ -296,7 +461,7 @@ function enviarPedidoWhatsApp() {
     ).join('|');
     
     const baseUrl = window.location.origin + window.location.pathname.replace('index.html', '').replace(/\/$/, '');
-    const linkImpressao = `${baseUrl}/imprimir.html?id=${idPedido}` +
+    const linkImpressao = `${baseUrl}/imprimir.html?id=${idPedidoAtual}` +
         `&nome=${encodeURIComponent(nome)}` +
         `&tel=${encodeURIComponent(telefone)}` +
         `&mod=${encodeURIComponent(modalidadeTexto)}` +
@@ -310,7 +475,7 @@ function enviarPedidoWhatsApp() {
         `&obs=${encodeURIComponent(obs)}`;
     
     let mensagem = `*🟡 NOVO PEDIDO — PASTELARIA DOS GORDELAS*\n`;
-    mensagem += `*ID:* ${idPedido}\n\n`;
+    mensagem += `*ID:* ${idPedidoAtual}\n\n`;
     mensagem += `*👤 Cliente:* ${nome}\n`;
     mensagem += `*📞 Telefone:* ${telefone}\n`;
     mensagem += `*📦 Modalidade:* ${modalidadeTexto}\n`;
@@ -322,16 +487,46 @@ function enviarPedidoWhatsApp() {
     mensagem += `*💳 Pagamento:* ${pagamento}\n`;
     if (obs) mensagem += `*📝 Obs:* ${obs}\n`;
     mensagem += `\n*🖨️ IMPRIMIR PEDIDO:*\n${linkImpressao}\n`;
+    
+    if (comprovanteFile && pagamentoBase === 'Pix') {
+        mensagem += `\n_✅ Comprovante anexado nesta conversa._\n`;
+    } else if (pagamentoBase === 'Pix') {
+        mensagem += `\n⚠️ _Envie a foto do comprovante do Pix após esta mensagem._\n`;
+    }
+    
     mensagem += `\n_Obrigado pela preferência!_ ❤️`;
     
+    // ===== TENTA USAR WEB SHARE API (compartilha imagem + texto juntos) =====
+    if (comprovanteFile && navigator.canShare && navigator.canShare({ files: [comprovanteFile] })) {
+        try {
+            await navigator.share({
+                files: [comprovanteFile],
+                text: mensagem,
+                title: `Pedido ${idPedidoAtual} - Pastelaria dos Gordelas`
+            });
+            // Sucesso! Limpa carrinho
+            carrinho = [];
+            comprovanteFile = null;
+            atualizarCarrinho();
+            fecharModal('modal-checkout');
+            return;
+        } catch (e) {
+            if (e.name === 'AbortError') return; // Usuário cancelou
+            console.warn('Web Share falhou, usando fallback:', e);
+        }
+    }
+    
+    // ===== FALLBACK: wa.me =====
     const url = `https://wa.me/${NUMERO_WHATSAPP}?text=${encodeURIComponent(mensagem)}`;
     window.open(url, '_blank');
     
     carrinho = [];
+    comprovanteFile = null;
     atualizarCarrinho();
     fecharModal('modal-checkout');
 }
 
+// ===== FEEDBACK VISUAL =====
 function mostrarFeedback(msg) {
     const toast = document.createElement('div');
     toast.textContent = '✅ ' + msg;
@@ -340,9 +535,11 @@ function mostrarFeedback(msg) {
         background: #25D366; color: white; padding: 10px 20px; border-radius: 20px;
         font-weight: 600; font-size: 13px; z-index: 300;
         box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        max-width: 90vw; text-align: center;
     `;
     document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 1800);
+    setTimeout(() => toast.remove(), 2000);
 }
 
+// ===== INICIALIZAÇÃO =====
 iniciar();
