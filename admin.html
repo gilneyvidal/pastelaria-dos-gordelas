@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Admin - Pastelaria dos Gordelas</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+<!-- TELA DE LOGIN -->
+<div id="tela-login" class="tela-login">
+    <div class="login-box">
+        <h1>🔐 Painel Admin</h1>
+        <p>Pastelaria dos Gordelas</p>
+        <label>
+            <span>Cole seu Token do GitHub:</span>
+            <input type="password" id="input-token" placeholder="ghp_...">
+        </label>
+        <button onclick="fazerLogin()">Entrar</button>
+        <p class="ajuda">💡 O token fica salvo apenas no seu celular.</p>
+    </div>
+</div>
+
+<!-- PAINEL PRINCIPAL -->
+<div id="painel" class="painel-escondido">
+    <header class="admin-header">
+        <div>
+            <h1>🛠️ Painel Admin</h1>
+            <p class="subtitulo">Pastelaria dos Gordelas</p>
+        </div>
+        <button class="btn-logout" onclick="fazerLogout()">Sair</button>
+    </header>
+
+    <div id="status-bar" class="status-bar"></div>
+
+    <nav class="admin-tabs">
+        <button class="tab ativa" onclick="mudarAba('produtos', this)">📦 Produtos</button>
+        <button class="tab" onclick="mudarAba('categorias', this)">📂 Categorias</button>
+        <button class="tab" onclick="mudarAba('taxas', this)">🛵 Taxas</button>
+        <button class="tab" onclick="mudarAba('config', this)">⚙️ Config</button>
+    </nav>
+
+    <main>
+        <section id="aba-produtos" class="aba-conteudo ativa">
+            <button class="btn-novo" onclick="abrirModalProduto()">➕ Novo Produto</button>
+            <div id="lista-produtos"></div>
+        </section>
+
+        <section id="aba-categorias" class="aba-conteudo">
+            <button class="btn-novo" onclick="abrirModalCategoria()">➕ Nova Categoria</button>
+            <div id="lista-categorias"></div>
+        </section>
+
+        <section id="aba-taxas" class="aba-conteudo">
+            <h2>Taxas de Entrega</h2>
+            <div id="lista-taxas"></div>
+            <button class="btn-novo" onclick="adicionarLinhaTaxa()">➕ Adicionar Bairro</button>
+            <button class="btn-salvar" onclick="salvarTaxas()">💾 Salvar Taxas</button>
+        </section>
+
+        <section id="aba-config" class="aba-conteudo">
+            <h2>Configurações</h2>
+            <label class="campo">
+                <span>Nome da Loja</span>
+                <input type="text" id="cfg-nome">
+            </label>
+            <label class="campo">
+                <span>WhatsApp (DDI+DDD+Número)</span>
+                <input type="text" id="cfg-whatsapp" placeholder="5511943184268">
+            </label>
+            <button class="btn-salvar" onclick="salvarConfig()">💾 Salvar Configurações</button>
+        </section>
+    </main>
+
+    <!-- Modal Produto -->
+    <div id="modal-produto" class="modal-escondido">
+        <div class="modal-box">
+            <h2 id="modal-produto-titulo">Novo Produto</h2>
+            <input type="hidden" id="prod-id">
+            
+            <label class="campo"><span>Nome *</span>
+                <input type="text" id="prod-nome" placeholder="Ex: Pastel de Carne">
+            </label>
+
+            <label class="campo"><span>Categoria *</span>
+                <select id="prod-categoria"></select>
+            </label>
+
+            <label class="campo"><span>Descrição</span>
+                <textarea id="prod-descricao" placeholder="Descrição do produto..."></textarea>
+            </label>
+
+            <label class="campo"><span>Preço (R$) *</span>
+                <input type="number" id="prod-preco" step="0.01" min="0" placeholder="0.00">
+            </label>
+
+            <label class="campo"><span>Foto do Produto</span>
+                <input type="file" id="prod-foto" accept="image/*" onchange="previewFoto(this)">
+                <img id="prod-foto-preview" class="foto-preview" style="display:none;">
+            </label>
+
+            <label class="campo-checkbox">
+                <input type="checkbox" id="prod-esgotado">
+                <span>Marcar como Esgotado</span>
+            </label>
+
+            <div id="prod-opcoes-monter" style="display:none;">
+                <label class="campo"><span>Opções de Recheio (separadas por vírgula)</span>
+                    <textarea id="prod-opcoes" placeholder="Carne Moída, Mussarela, Catupiry..."></textarea>
+                </label>
+            </div>
+
+            <div class="modal-botoes">
+                <button class="btn-cancelar" onclick="fecharModal('modal-produto')">Cancelar</button>
+                <button class="btn-salvar-modal" onclick="salvarProduto()">💾 Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Categoria -->
+    <div id="modal-categoria" class="modal-escondido">
+        <div class="modal-box">
+            <h2 id="modal-categoria-titulo">Nova Categoria</h2>
+            <input type="hidden" id="cat-id-original">
+            <label class="campo"><span>Nome da Categoria *</span>
+                <input type="text" id="cat-nome" placeholder="Ex: Bebidas">
+            </label>
+            <p class="aviso">⚠️ Renomear uma categoria atualiza todos os produtos dela.</p>
+            <div class="modal-botoes">
+                <button class="btn-cancelar" onclick="fecharModal('modal-categoria')">Cancelar</button>
+                <button class="btn-salvar-modal" onclick="salvarCategoria()">💾 Salvar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="admin.js"></script>
+</body>
+</html>
