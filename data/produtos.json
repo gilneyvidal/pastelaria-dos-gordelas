@@ -94,14 +94,5 @@
     "preco": 13,
     "foto": "romeu_julieta.jpg",
     "esgotado": false
-  },
-  {
-    "id": "produto-mu3hm83o",
-    "categoria": "tradicionais",
-    "nome": "PASTEL TESTE",
-    "descricao": "Pastel de teste",
-    "preco": 1,
-    "foto": "produto-1789526066934.jpg",
-    "esgotado": false
   }
 ]
