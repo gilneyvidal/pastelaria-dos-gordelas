@@ -345,7 +345,6 @@ header::after {
 }
 .sub-opcoes .campo { margin-bottom: 0; }
 
-/* ===== PIX ===== */
 .qrcode-container {
     display: flex;
     justify-content: center;
@@ -421,13 +420,32 @@ header::after {
     margin-bottom: 8px;
     background: var(--preto);
 }
+.btn-salvar-comprovante {
+    width: 100%;
+    padding: 10px;
+    background-color: var(--verde);
+    color: var(--branco);
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-bottom: 8px;
+}
+.btn-salvar-comprovante:active { background: #1DA851; }
 .dica-comprovante {
     display: block;
     font-size: 11px;
     color: var(--cinza-texto);
-    line-height: 1.3;
+    line-height: 1.4;
     margin-top: 4px;
+    padding: 8px;
+    background-color: rgba(255, 193, 7, 0.08);
+    border-radius: 6px;
+    border-left: 3px solid var(--amarelo);
 }
+.dica-comprovante strong { color: var(--amarelo); }
 
 .resumo-checkout {
     background-color: var(--preto);
