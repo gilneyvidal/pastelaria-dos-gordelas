@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedido - Pastelaria dos Gordelas</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Courier New', monospace; }
+        body { background: #f0f0f0; padding: 20px; }
+        .cupom {
+            max-width: 380px; margin: 0 auto; background: #fff; padding: 20px;
+            border: 1px dashed #000; font-size: 13px; line-height: 1.5; color: #000;
+        }
+        h1 { text-align: center; font-size: 16px; margin-bottom: 4px; }
+        .subtitulo { text-align: center; font-size: 11px; margin-bottom: 12px; }
+        .linha { border-top: 1px dashed #000; margin: 8px 0; }
+        .dupla { display: flex; justify-content: space-between; margin: 3px 0; }
+        .total { font-weight: bold; font-size: 15px; }
+        .itens { margin: 8px 0; }
+        .itens .dupla { font-size: 12px; }
+        .obs { font-style: italic; font-size: 11px; margin-top: 8px; word-wrap: break-word; }
+        .rodape { text-align: center; font-size: 10px; margin-top: 12px; }
+        .btn-print { display: block; width: 100%; max-width: 380px; margin: 15px auto; padding: 12px;
+            background: #FFC107; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        @media print {
+            body { background: #fff; padding: 0; }
+            .btn-print { display: none; }
+            .cupom { border: none; max-width: 100%; padding: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="cupom" id="cupom"></div>
+    <button class="btn-print" onclick="window.print()">🖨️ Imprimir Agora</button>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        
+        const id = params.get('id') || '-';
+        const nome = params.get('nome') || '-';
+        const telefone = params.get('tel') || '-';
+        const modalidade = params.get('mod') || '-';
+        const endereco = params.get('end') || '';
+        const bairro = params.get('bai') || '';
+        const itens = (params.get('itens') || '').split('|').filter(x => x);
+        const subtotal = params.get('sub') || '0,00';
+        const taxa = params.get('taxa') || '0,00';
+        const total = params.get('tot') || '0,00';
+        const pagamento = params.get('pag') || '-';
+        const obs = params.get('obs') || '';
+        const dataHora = new Date().toLocaleString('pt-BR');
+
+        let enderecoHtml = '';
+        if (modalidade.includes('Entrega') && endereco) {
+            enderecoHtml = `<div class="linha"></div>
+                <div><strong>Endereço:</strong> ${endereco}</div>
+                <div><strong>Bairro:</strong> ${bairro}</div>`;
+        }
+
+        let itensHtml = itens.map(item => {
+            const partes = item.split(':');
+            const qtdNome = partes[0];
+            const valor = partes[1] || '0,00';
+            return `<div class="dupla"><span>${qtdNome}</span><span>R$ ${valor}</span></div>`;
+        }).join('');
+
+        let taxaHtml = '';
+        if (parseFloat(taxa.replace(',', '.')) > 0) {
+            taxaHtml = `<div class="dupla"><span>Taxa de Entrega</span><span>R$ ${taxa}</span></div>`;
+        }
+
+        let obsHtml = obs ? `<div class="obs">Obs: ${obs}</div>` : '';
+
+        document.getElementById('cupom').innerHTML = `
+            <h1>🟡 PASTELARIA DOS GORDELAS</h1>
+            <div class="subtitulo">Mogi das Cruzes - SP</div>
+            <div class="linha"></div>
+            <div class="dupla"><span>Pedido:</span><strong>${id}</strong></div>
+            <div class="dupla"><span>Data:</span><span>${dataHora}</span></div>
+            <div class="linha"></div>
+            <div><strong>Cliente:</strong> ${nome}</div>
+            <div><strong>Telefone:</strong> ${telefone}</div>
+            <div><strong>Modalidade:</strong> ${modalidade}</div>
+            ${enderecoHtml}
+            <div class="linha"></div>
+            <div><strong>ITENS:</strong></div>
+            <div class="itens">${itensHtml}</div>
+            <div class="linha"></div>
+            <div class="dupla"><span>Subtotal</span><span>R$ ${subtotal}</span></div>
+            ${taxaHtml}
+            <div class="dupla total"><span>TOTAL</span><span>R$ ${total}</span></div>
+            <div class="linha"></div>
+            <div><strong>Pagamento:</strong> ${pagamento}</div>
+            ${obsHtml}
+            <div class="rodape">
+                Obrigado pela preferência! ❤️<br>
+                Frito na hora, sempre crocante!
+            </div>
+        `;
+
+        setTimeout(() => window.print(), 600);
+    </script>
+</body>
+</html>
