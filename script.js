@@ -511,12 +511,14 @@ function enviarPedidoWhatsApp() {
     mensagem += `*TOTAL: R$ ${total}*\n\n`;
     mensagem += `*Pagamento:* ${pagamento}\n`;
     if (obs) mensagem += `*Obs:* ${obs}\n`;
-    mensagem += `\n*IMPRIMIR PEDIDO:*\n${linkImpressao}\n`;
+    
+    mensagem += `\n------------------------------------\n`;
+    mensagem += `*LINK PARA IMPRIMIR O PEDIDO:*\n`;
+    mensagem += `${linkImpressao}\n`;
+    mensagem += `------------------------------------\n`;
     
     if (pagamentoBase === 'Pix' && comprovanteFile) {
-        mensagem += `\n------------------------------------\n`;
-        mensagem += `*COMPROVANTE DO PIX SERA ENVIADO EM SEGUIDA NESTA CONVERSA.*\n`;
-        mensagem += `------------------------------------`;
+        mensagem += `\n*COMPROVANTE DO PIX SERA ENVIADO EM SEGUIDA NESTA CONVERSA.*`;
     }
     
     mensagem += `\n\n_Obrigado pela preferencia!_`;
