@@ -3,6 +3,23 @@ const GITHUB_REPO = 'pastelaria-dos-gordelas';
 const GITHUB_BRANCH = 'main';
 const API_URL = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/`;
 
+// Taxas padrão (caso o arquivo não exista no repositório)
+const TAXAS_PADRAO = {
+  "PARQUE OLÍMPICO": 4.00,
+  "VILA MUNICIPAL": 4.00,
+  "JARDIM UNIVERSO": 6.00,
+  "JD AEROPORTO 2": 7.00,
+  "JD AEROPORTO 3": 6.00,
+  "SANTO ANGELO": 9.00,
+  "CENTRO": 15.00,
+  "JUNDIAPEBA": 15.00,
+  "CÉZAR": 20.00,
+  "JD APOLLO": 7.00,
+  "JD ESPERANÇA": 6.00,
+  "JD IVETE": 7.00,
+  "SANTA TERESA": 7.00
+};
+
 let token = '';
 let produtos = [];
 let categorias = [];
@@ -79,8 +96,21 @@ async function iniciarPainel() {
         if (c) { categorias = JSON.parse(c.content); shaCategorias = c.sha; }
         else { categorias = [...new Set(produtos.map(x => x.categoria))]; }
         
+        // 👇 MUDANÇA AQUI: Se taxas.json não existir, cria com os padrões
         const t = await ghGet('data/taxas.json');
-        if (t) { taxas = JSON.parse(t.content); shaTaxas = t.sha; }
+        if (t) { 
+            taxas = JSON.parse(t.content); 
+            shaTaxas = t.sha; 
+        } else {
+            taxas = { ...TAXAS_PADRAO };
+            status('📝 Criando arquivo de taxas...', 'info');
+            try {
+                const r = await ghPut('data/taxas.json', utf8ToBase64(JSON.stringify(taxas, null, 2)), null, 'Criar taxas iniciais');
+                shaTaxas = r.content.sha;
+            } catch (err) {
+                console.warn('Não foi possível criar taxas.json automaticamente:', err);
+            }
+        }
         
         const cf = await ghGet('data/config.json');
         if (cf) { config = JSON.parse(cf.content); shaConfig = cf.sha; }
