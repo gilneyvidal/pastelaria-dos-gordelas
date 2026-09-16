@@ -1,5 +1,6 @@
 let produtos = [];
 let carrinho = [];
+let selecionados = [];
 
 // 1. Carregar os produtos do arquivo JSON
 async function carregarProdutos() {
@@ -10,7 +11,7 @@ async function carregarProdutos() {
         renderizarProdutos('tradicionais'); // Aba inicial
     } catch (erro) {
         console.error('Erro ao carregar produtos:', erro);
-        document.getElementById('cardapio').innerHTML = '<p>Erro ao carregar o cardápio. Tente novamente.</p>';
+        document.getElementById('cardapio').innerHTML = '<p style="text-align:center; padding:20px;">Erro ao carregar o cardápio. Recarregue a página.</p>';
     }
 }
 
@@ -22,7 +23,8 @@ function renderizarCategorias() {
     categorias.forEach(cat => {
         const btn = document.createElement('button');
         btn.className = 'aba';
-        btn.textContent = cat.charAt(0).toUpperCase() + cat.slice(1);
+        // Deixa a primeira letra maiúscula e troca '-' por espaço
+        btn.textContent = cat.charAt(0).toUpperCase() + cat.slice(1).replace('-', ' ');
         btn.onclick = () => {
             document.querySelectorAll('.aba').forEach(b => b.classList.remove('ativa'));
             btn.classList.add('ativa');
@@ -30,32 +32,38 @@ function renderizarCategorias() {
         };
         nav.appendChild(btn);
     });
-    // Ativar a primeira aba
     if (nav.firstChild) nav.firstChild.classList.add('ativa');
 }
 
-// 3. Renderizar os produtos da categoria selecionada
+// 3. Renderizar os produtos
 function renderizarProdutos(categoria) {
     const container = document.getElementById('cardapio');
     container.innerHTML = '';
     const filtrados = produtos.filter(p => p.categoria === categoria);
+    
     filtrados.forEach(p => {
         const card = document.createElement('div');
         card.className = 'produto-card' + (p.esgotado ? ' esgotado' : '');
         
-        // Verifica se é o "Monte o Seu" para abrir modal
-        const acao = p.id === 'monte-o-seu' ? `abrirModalMonte()'` : `adicionarAoCarrinho('${p.id}')'`;
-        const textoBotao = p.esgotado ? 'Esgotado' : (p.id === 'monte-o-seu' ? 'Montar' : 'Adicionar');
+        // 👇 CORREÇÃO DO BUG AQUI: Removida a aspa extra e ajustada a lógica
+        const isMonte = p.id === 'monte-o-seu';
+        const acao = isMonte ? `abrirModalMonte()` : `adicionarAoCarrinho('${p.id}')`;
+        const textoBotao = p.esgotado ? 'Esgotado' : (isMonte ? 'Montar' : 'Adicionar');
+
+        // Fallback para imagem quebrada
+        const imgSrc = p.foto ? `public/images/${p.foto}` : 'https://placehold.co/80x80/FFD700/000000?text=Pastel';
 
         card.innerHTML = `
-            <img src="public/images/${p.foto}" alt="${p.nome}" onerror="this.src='https://via.placeholder.com/80?text=Pastel'">
+            <img src="${imgSrc}" alt="${p.nome}" onerror="this.src='https://placehold.co/80x80/FFD700/000000?text=Pastel'">
             <div class="produto-info">
                 <h3>${p.nome}</h3>
                 <p>${p.descricao}</p>
-                <div class="preco">R$ ${p.preco.toFixed(2).replace('.', ',')}</div>
-                <button onclick="${acao}" ${p.esgotado ? 'disabled' : ''} style="margin-top:8px; padding:6px 12px; background:var(--amarelo); border:none; border-radius:5px; font-weight:bold; cursor:pointer;">
-                    ${textoBotao}
-                </button>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px;">
+                    <span class="preco">R$ ${p.preco.toFixed(2).replace('.', ',')}</span>
+                    <button class="btn-add" onclick="${acao}" ${p.esgotado ? 'disabled' : ''}>
+                        ${textoBotao}
+                    </button>
+                </div>
             </div>
         `;
         container.appendChild(card);
@@ -74,6 +82,8 @@ function adicionarAoCarrinho(id) {
         carrinho.push({ ...produto, quantidade: 1 });
     }
     atualizarCarrinho();
+    // Feedback visual rápido (pode ser um toast depois)
+    // alert(`${produto.nome} adicionado!`); 
 }
 
 function atualizarCarrinho() {
@@ -84,10 +94,15 @@ function atualizarCarrinho() {
     document.getElementById('total-carrinho').textContent = total.toFixed(2).replace('.', ',');
 
     const container = document.getElementById('itens-carrinho');
+    if (carrinho.length === 0) {
+        container.innerHTML = '<p style="text-align:center; padding:10px; font-size:12px;">Seu carrinho está vazio.</p>';
+        return;
+    }
+
     container.innerHTML = carrinho.map(item => `
-        <div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #ccc;">
+        <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #ccc; font-size:14px;">
             <span>${item.quantidade}x ${item.nome}</span>
-            <span>R$ ${(item.preco * item.quantidade).toFixed(2).replace('.', ',')}</span>
+            <span style="font-weight:bold;">R$ ${(item.preco * item.quantidade).toFixed(2).replace('.', ',')}</span>
         </div>
     `).join('');
 }
@@ -97,8 +112,6 @@ function toggleCarrinho() {
 }
 
 // 5. Lógica do "Monte o Seu"
-let selecionados = [];
-
 function abrirModalMonte() {
     selecionados = [];
     const produto = produtos.find(p => p.id === 'monte-o-seu');
@@ -130,7 +143,8 @@ function atualizarSelecao(checkbox) {
     document.getElementById('contador-sabores').textContent = `${selecionados.length} / 5`;
 }
 
-function adicionarMonteAoCarinho() { // Corrigido o nome da função
+// 👇 CORREÇÃO DO BUG: Nome da função corrigido (Carrinho com 2 R's)
+function adicionarMonteAoCarrinho() {
     if (selecionados.length === 0) {
         alert('Escolha pelo menos 1 sabor!');
         return;
@@ -141,7 +155,15 @@ function adicionarMonteAoCarinho() { // Corrigido o nome da função
         nome: `Monte o Seu (${selecionados.join(', ')})`,
         quantidade: 1
     };
-    carrinho.push(item);
+    
+    // Verifica se já tem um "Monte o Seu" com os mesmos ingredientes
+    const itemExistente = carrinho.find(i => i.nome === item.nome);
+    if (itemExistente) {
+        itemExistente.quantidade++;
+    } else {
+        carrinho.push(item);
+    }
+    
     atualizarCarrinho();
     fecharModal();
 }
@@ -150,14 +172,13 @@ function fecharModal() {
     document.getElementById('modal-monter').classList.remove('ativo');
 }
 
-// 6. Finalizar Pedido (Checkout WhatsApp)
+// 6. Finalizar Pedido (Checkout WhatsApp - Versão Simples Provisória)
 function finalizarPedido() {
     if (carrinho.length === 0) {
         alert('Seu carrinho está vazio!');
         return;
     }
 
-    // Aqui vamos coletar os dados do cliente. Por enquanto, mensagem simples.
     const itensTexto = carrinho.map(i => `${i.quantidade}x ${i.nome} - R$ ${(i.preco * i.quantidade).toFixed(2).replace('.', ',')}`).join('\n');
     const total = carrinho.reduce((acc, i) => acc + (i.preco * i.quantidade), 0).toFixed(2).replace('.', ',');
     
@@ -165,7 +186,8 @@ function finalizarPedido() {
                      `*Itens:*\n${itensTexto}\n\n` +
                      `*Total:* R$ ${total}`;
     
-    const telefone = '5511999999999'; // <--- COLOQUE O NÚMERO DO SEU LEAD AQUI (DDI+DDD+Número)
+    // ⚠️ COLOQUE O NÚMERO DO SEU LEAD AQUI (DDI+DDD+Número)
+    const telefone = '5511999999999'; 
     const url = `https://wa.me/${telefone}?text=${encodeURIComponent(mensagem)}`;
     window.open(url, '_blank');
 }
