@@ -16,7 +16,6 @@
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
 body { background: var(--preto); color: var(--branco); min-height: 100vh; font-size: 14px; }
 
-/* LOGIN */
 .tela-login { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; background: linear-gradient(135deg, #000 0%, var(--cinza-escuro) 100%); }
 .login-box { background: var(--cinza-card); border: 2px solid var(--amarelo); border-radius: 16px; padding: 30px 24px; width: 100%; max-width: 400px; box-shadow: 0 0 40px rgba(255,193,7,0.15); }
 .login-box h1 { color: var(--amarelo); text-align: center; font-size: 22px; margin-bottom: 6px; }
@@ -29,7 +28,6 @@ body { background: var(--preto); color: var(--branco); min-height: 100vh; font-s
 .login-box button:active { background: #E0A800; }
 .ajuda { font-size: 11px !important; color: #666 !important; margin-top: 16px !important; line-height: 1.4; }
 
-/* PAINEL */
 .painel-escondido { display: none; }
 .admin-header { background: var(--cinza-escuro); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--amarelo); position: sticky; top: 0; z-index: 50; }
 .admin-header h1 { font-size: 18px; color: var(--amarelo); }
@@ -94,3 +92,23 @@ body { background: var(--preto); color: var(--branco); min-height: 100vh; font-s
 .linha-taxa input.bairro { flex: 2; }
 .linha-taxa input.valor { flex: 1; max-width: 100px; }
 .linha-taxa .btn-remover { background: var(--vermelho); color: #fff; border: none; width: 36px; height: 36px; border-radius: 8px; cursor: pointer; flex-shrink: 0; font-size: 16px; }
+
+/* ===== DASHBOARD ===== */
+.stat-card {
+    background: var(--cinza-card);
+    border: 1px solid var(--cinza-borda);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.stat-card .label { font-size: 13px; color: var(--cinza-texto); }
+.stat-card .valor { font-size: 20px; font-weight: 800; color: var(--amarelo); }
+.stat-card .emoji { font-size: 24px; margin-left: 10px; }
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.lista-simples { background: var(--cinza-card); border-radius: 12px; padding: 12px; font-size: 13px; border: 1px solid var(--cinza-borda); }
+.lista-simples .linha { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--cinza-borda); }
+.lista-simples .linha:last-child { border-bottom: none; }
+.lista-simples .linha strong { color: var(--amarelo); }
