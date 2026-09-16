@@ -219,6 +219,12 @@ function toggleEndereco() {
     calcularTaxa();
 }
 
+function toggleSubPagamento() {
+    const pagamento = document.querySelector('input[name="pagamento"]:checked').value;
+    document.getElementById('sub-pagamento-cartao').style.display = pagamento === 'Cartão' ? 'block' : 'none';
+    document.getElementById('sub-pagamento-dinheiro').style.display = pagamento === 'Dinheiro' ? 'block' : 'none';
+}
+
 function calcularTaxa() {
     const modalidade = document.querySelector('input[name="modalidade"]:checked').value;
     const bairro = document.getElementById('cli-bairro').value;
@@ -247,11 +253,21 @@ function enviarPedidoWhatsApp() {
     const nome = document.getElementById('cli-nome').value.trim();
     const telefone = document.getElementById('cli-telefone').value.trim();
     const modalidade = document.querySelector('input[name="modalidade"]:checked').value;
-    const pagamento = document.querySelector('input[name="pagamento"]:checked').value;
+    const pagamentoBase = document.querySelector('input[name="pagamento"]:checked').value;
     const obs = document.getElementById('cli-obs').value.trim();
     
     if (!nome) { alert('Por favor, preencha seu nome.'); return; }
     if (!telefone) { alert('Por favor, preencha seu telefone.'); return; }
+    
+    // ===== MONTA O TEXTO DO PAGAMENTO COM SUB-OPÇÕES =====
+    let pagamento = pagamentoBase;
+    if (pagamentoBase === 'Cartão') {
+        const tipoCartao = document.querySelector('input[name="tipo-cartao"]:checked').value;
+        pagamento = `Cartão (${tipoCartao})`;
+    } else if (pagamentoBase === 'Dinheiro') {
+        const troco = document.getElementById('cli-troco').value.trim();
+        if (troco) pagamento = `Dinheiro (troco para R$ ${troco})`;
+    }
     
     let enderecoTexto = '';
     let enderecoParam = '';
